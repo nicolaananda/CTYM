@@ -19,22 +19,67 @@ CattyMail is a disposable email service supporting `@catty.my.id` and `@cattypre
 - Redis
 - Access to an IMAP server (configured catch-all).
 
-## Local Development (Docker Compose)
-1. Set `IMAP_PASS` environment variable or create `.env` file.
-   ```bash
-   export IMAP_PASS="your_password"
-   ```
-2. Run with Docker Compose:
-   ```bash
-   docker-compose up --build
-   ```
-3. Open `http://localhost:5173` (Frontend requires manual start if not dockerized in dev, see below).
+## 🐳 Docker Deployment (Recommended)
 
-**Note**: The provided `docker-compose.yml` builds the backend. For frontend development:
-1. `cd frontend`
-2. `npm install`
-3. `npm run dev`
-4. Update `frontend/.env` to point to `VITE_API_BASE_URL=http://localhost:8080/api` (or configure proxy).
+### Prerequisites
+- Docker & Docker Compose installed.
+- `.env` file with `IMAP_PASS` set.
+
+### Quick Start
+```bash
+# 1. Clone the repository
+git clone git@github.com:nicolaananda/CTYM.git
+cd CTYM
+
+# 2. Create environment file
+echo "IMAP_PASS=your_imap_password" > .env
+
+# 3. Build and run all services
+docker-compose up --build -d
+
+# 4. Check status
+docker-compose ps
+```
+
+### Access
+| Service  | URL                     |
+|----------|-------------------------|
+| Frontend | http://localhost:4412   |
+| API      | http://localhost:8080   |
+| Redis    | localhost:6379          |
+
+### Useful Commands
+```bash
+# View logs
+docker-compose logs -f
+
+# Restart services
+docker-compose restart
+
+# Stop all services
+docker-compose down
+
+# Rebuild after code changes
+docker-compose up --build -d
+```
+
+---
+
+## Local Development (Without Docker)
+
+For frontend development with hot-reload:
+```bash
+# Terminal 1: Start backend (requires Docker for Redis)
+docker-compose up redis api ingestor -d
+
+# Terminal 2: Start frontend dev server
+cd frontend
+npm install
+npm run dev
+```
+Frontend will be at `http://localhost:5173` and automatically proxies `/api` to the backend.
+
+---
 
 ## Production Deployment (VPS)
 

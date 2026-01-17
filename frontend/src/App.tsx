@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { api, type Message } from './lib/api';
 import dompurify from 'dompurify';
-import { Mail, RefreshCw, Copy, Plus, ArrowLeft, Trash2, Check, Sparkles, XCircle, CheckCircle } from 'lucide-react';
+import { Mail, RefreshCw, Copy, ArrowLeft, Trash2, Sparkles, XCircle, CheckCircle } from 'lucide-react';
 
 /* Types for Toast */
 type ToastType = 'success' | 'error' | 'info';
@@ -20,7 +20,7 @@ function App() {
   const [selectedDomain, setSelectedDomain] = useState('catty.my.id');
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
-  const pollTimer = useRef<NodeJS.Timeout | null>(null);
+  const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Helper to show toast
   const showToast = (text: string, type: ToastType = 'info') => {
