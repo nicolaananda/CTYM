@@ -199,10 +199,10 @@ function App() {
 
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
               <h3 style={{ marginBottom: '0.8rem', fontSize: '2.5rem', color: '#2d2d2d', lineHeight: 1.2 }}>
-                Claim Your <br /><span className="text-gradient">Pop-up Email</span>
+                Get Your <br /><span className="text-gradient">Temporary Email</span>
               </h3>
               <p className="text-muted" style={{ fontSize: '1.1rem', lineHeight: 1.5 }}>
-                Private, secure, and ready in seconds.<br />No passwords attached.
+                Instant. Anonymous. Auto-expires in 24 hours.<br />No sign-up required.
               </p>
             </div>
 
@@ -227,13 +227,13 @@ function App() {
                 className="btn-primary w-full btn-lg"
                 style={{ justifyContent: 'center' }}
               >
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Sparkles size={20} fill="white" /> Generate Magic Address</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Sparkles size={20} fill="white" /> Create Instant Email</span>
                 {loading && <RefreshCw className="spin" size={24} style={{ marginLeft: 'auto' }} />}
               </button>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '0.5rem 0' }}>
                 <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent)' }}></div>
-                <span className="text-muted text-sm" style={{ fontFamily: 'Outfit', letterSpacing: '2px', fontWeight: 700, fontSize: '0.75rem', color: '#999' }}>OR CUSTOMIZE</span>
+                <span className="text-muted text-sm" style={{ fontFamily: 'Outfit', letterSpacing: '2px', fontWeight: 700, fontSize: '0.75rem', color: '#999' }}>OR ENTER YOUR OWN</span>
                 <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent)' }}></div>
               </div>
 
@@ -241,7 +241,7 @@ function App() {
               <form onSubmit={handleCustom} className="flex-col" style={{ gap: '1rem', width: '100%' }}>
                 <input
                   type="text"
-                  placeholder="your-name"
+                  placeholder="e.g. myname"
                   value={customLocal}
                   onChange={(e) => setCustomLocal(e.target.value)}
                   className="input-field text-center"
@@ -258,7 +258,7 @@ function App() {
                     background: customLocal ? 'linear-gradient(135deg, #8c52ff 0%, #ff5ac8 100%)' : '#ccc'
                   }}
                 >
-                  <span style={{ textAlign: 'center' }}>Claim Custom Address</span>
+                  <span style={{ textAlign: 'center' }}>Use This Address</span>
                   <ArrowLeft size={18} style={{ transform: 'rotate(180deg)', marginLeft: '8px' }} />
                 </button>
               </form>
@@ -269,7 +269,7 @@ function App() {
         <div className="glass-card animate-fade-in w-full" style={{ maxWidth: '800px', padding: '0' }}>
           {/* Header */}
           <div style={{ padding: '2rem', background: 'rgba(255,255,255,0.4)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.5)' }}>
-            <div className="text-muted text-sm" style={{ letterSpacing: '1px', fontWeight: 600 }}>ACTIVE SESSION</div>
+            <div className="text-muted text-sm" style={{ letterSpacing: '1px', fontWeight: 600 }}>YOUR TEMPORARY INBOX</div>
 
             <div className="flex-row" style={{ background: 'linear-gradient(135deg, #fff 0%, #fff0f5 100%)', padding: '0.8rem 1.5rem', borderRadius: '50px', border: '1px solid #ffdbed', boxShadow: '0 8px 16px rgba(255,105,180,0.1)', flexWrap: 'wrap', justifyContent: 'center', gap: '0.5rem' }}>
               <span style={{ fontSize: '1.3rem', fontWeight: '700', color: '#333', background: 'linear-gradient(90deg, #333, #666)', WebkitBackgroundClip: 'text', textAlign: 'center', wordBreak: 'break-all' }}>
@@ -286,7 +286,7 @@ function App() {
             </div>
 
             <button onClick={handleLogout} className="text-muted text-sm" style={{ background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.2s', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Trash2 size={14} /> End Session / Change Address
+              <Trash2 size={14} /> Delete & Create New
             </button>
           </div>
 
@@ -305,8 +305,8 @@ function App() {
                   <div style={{ background: 'rgba(255,255,255,0.5)', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
                     <Mail size={40} style={{ opacity: 0.4, color: '#ff69b4' }} />
                   </div>
-                  <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>Your inbox is empty</p>
-                  <p className="text-sm" style={{ opacity: 0.7 }}>Waiting for new messages...</p>
+                  <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>No messages yet</p>
+                  <p className="text-sm" style={{ opacity: 0.7 }}>Emails sent to this address will appear here automatically.</p>
                 </div>
               ) : (
                 <div className="flex-col" style={{ gap: '0.8rem', padding: '1rem' }}>
@@ -393,7 +393,7 @@ function App() {
                 <li>We are not responsible for lost data or missed messages.</li>
               </ul>
               <p style={{ fontSize: '0.9rem', marginTop: '1.5rem', textAlign: 'center', opacity: 0.8 }}>
-                Built with 💖 by CattyMail Team.
+                Built by nicola.id
               </p>
             </div>
 
