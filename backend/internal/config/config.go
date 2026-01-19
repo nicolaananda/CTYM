@@ -20,6 +20,8 @@ type Config struct {
 	RateLimitFetchPerMin  int
 	LogLevel             string
 	ExpiredWeb           string
+	AdminPassword        string
+	JWTSecret            string
 }
 
 func Load() *Config {
@@ -37,6 +39,8 @@ func Load() *Config {
 		RateLimitFetchPerMin:  getEnvInt("RATE_LIMIT_FETCH_PER_MIN", 60),
 		LogLevel:             getEnv("LOG_LEVEL", "info"),
 		ExpiredWeb:           getEnv("EXPIRED_WEB", ""),
+		AdminPassword:        getEnv("ADMIN_PASSWORD", "admin123"),
+		JWTSecret:            getEnv("JWT_SECRET", ""),
 	}
 }
 

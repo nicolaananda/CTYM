@@ -1,6 +1,7 @@
 package api
 
 import (
+	"cattymail/internal/admin"
 	"cattymail/internal/config"
 	"cattymail/internal/domain"
 	"cattymail/internal/redisstore"
@@ -20,12 +21,23 @@ import (
 )
 
 type Handler struct {
-	cfg   *config.Config
-	store *redisstore.Store
+	cfg         *config.Config
+	store       *redisstore.Store
+	adminHandler *admin.AdminHandler
 }
 
 func New(cfg *config.Config, store *redisstore.Store) *Handler {
-	return &Handler{cfg: cfg, store: store}
+	adminHandler, err := admin.NewAdminHandler(cfg, store)
+	if err != nil {
+		// Log error but continue - admin panel will be unavailable
+		// In production, you might want to handle this differently
+	}
+
+	return &Handler{
+		cfg:          cfg,
+		store:        store,
+		adminHandler: adminHandler,
+	}
 }
 
 func (h *Handler) Router() http.Handler {
@@ -57,6 +69,24 @@ func (h *Handler) Router() http.Handler {
 		
 		r.Get("/inbox/{domain}/{local}", h.getInbox)
 		r.Get("/message/{id}", h.getMessage)
+
+		// Admin routes
+		if h.adminHandler != nil {
+			r.Post("/admin/login", h.adminHandler.Login)
+			
+			// Protected admin routes
+			r.Group(func(r chi.Router) {
+				r.Use(h.adminHandler.AuthMiddleware)
+				
+				r.Get("/admin/stats", h.adminHandler.GetStats)
+				r.Get("/admin/domains", h.adminHandler.GetDomains)
+				r.Get("/admin/config", h.adminHandler.GetConfig)
+				r.Get("/admin/addresses", h.adminHandler.GetAddresses)
+				r.Get("/admin/messages", h.adminHandler.GetMessages)
+				r.Delete("/admin/messages/{id}", h.adminHandler.DeleteMessage)
+				r.Get("/admin/health", h.adminHandler.GetHealth)
+			})
+		}
 	})
 
 	return r
