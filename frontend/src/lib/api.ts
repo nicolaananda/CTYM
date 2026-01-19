@@ -24,20 +24,25 @@ export const api = {
     const res = await axios.post<Address>(`${API_BASE}/address/random`, { domain: domainStr });
     return res.data;
   },
-  
+
   createCustomAddress: async (domainStr: string, local: string) => {
     const res = await axios.post<Address>(`${API_BASE}/address/custom`, { domain: domainStr, local });
     return res.data;
   },
-  
+
   getInbox: async (domainStr: string, local: string, limit = 50, before?: number) => {
     const params = { limit, before };
     const res = await axios.get<Message[]>(`${API_BASE}/inbox/${domainStr}/${local}`, { params });
     return res.data;
   },
-  
+
   getMessage: async (id: string) => {
     const res = await axios.get<Message>(`${API_BASE}/message/${id}`);
+    return res.data;
+  },
+
+  getStatus: async () => {
+    const res = await axios.get<{ expired: boolean; expirationDate?: string; message?: string }>(`${API_BASE}/status`);
     return res.data;
   }
 };

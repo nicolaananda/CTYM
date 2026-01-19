@@ -19,6 +19,7 @@ type Config struct {
 	RateLimitCreatePerMin int
 	RateLimitFetchPerMin  int
 	LogLevel             string
+	ExpiredWeb           string
 }
 
 func Load() *Config {
@@ -35,6 +36,7 @@ func Load() *Config {
 		RateLimitCreatePerMin: getEnvInt("RATE_LIMIT_CREATE_PER_MIN", 10),
 		RateLimitFetchPerMin:  getEnvInt("RATE_LIMIT_FETCH_PER_MIN", 60),
 		LogLevel:             getEnv("LOG_LEVEL", "info"),
+		ExpiredWeb:           getEnv("EXPIRED_WEB", ""),
 	}
 }
 

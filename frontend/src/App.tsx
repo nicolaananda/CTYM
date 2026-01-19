@@ -20,6 +20,8 @@ function App() {
   const [selectedDomain, setSelectedDomain] = useState('catty.my.id');
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [isExpired, setIsExpired] = useState(false);
+  const [expirationDate, setExpirationDate] = useState<string | null>(null);
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Helper to show toast
@@ -30,6 +32,22 @@ function App() {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 3000);
   };
+
+  // Check expiration status on mount
+  useEffect(() => {
+    const checkExpiration = async () => {
+      try {
+        const status = await api.getStatus();
+        setIsExpired(status.expired);
+        if (status.expirationDate) {
+          setExpirationDate(status.expirationDate);
+        }
+      } catch (err) {
+        console.error('Failed to check expiration', err);
+      }
+    };
+    checkExpiration();
+  }, []);
 
   // Load saved address on mount
   useEffect(() => {
@@ -148,6 +166,31 @@ function App() {
       console.error(err);
     }
   };
+
+  // Show expiration screen if expired
+  if (isExpired) {
+    return (
+      <div className="container-center w-full" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="glass-card animate-fade-in" style={{ maxWidth: '600px', padding: '3rem', textAlign: 'center' }}>
+          <div style={{ marginBottom: '2rem' }}>
+            <XCircle size={80} color="#ff4d4d" style={{ margin: '0 auto' }} />
+          </div>
+          <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#333' }}>Service Expired</h1>
+          <p style={{ fontSize: '1.2rem', color: '#666', marginBottom: '1.5rem' }}>
+            This CattyMail service has expired and is no longer available.
+          </p>
+          {expirationDate && (
+            <p style={{ fontSize: '1rem', color: '#999', marginBottom: '2rem' }}>
+              Expiration date: <strong>{new Date(expirationDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
+            </p>
+          )}
+          <p style={{ fontSize: '0.9rem', color: '#999' }}>
+            For inquiries, please contact: <a href="https://nicola.id" style={{ color: '#ff69b4', textDecoration: 'underline' }}>nicola.id</a>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container-center w-full">

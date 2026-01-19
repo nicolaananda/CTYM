@@ -41,6 +41,7 @@ func (h *Handler) Router() http.Handler {
 		AllowCredentials: true,
 	})
 	r.Use(c.Handler)
+	r.Use(h.expirationMiddleware)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -49,6 +50,7 @@ func (h *Handler) Router() http.Handler {
 		r.Get("/readyz", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		})
+		r.Get("/status", h.getStatus)
 
 		r.Post("/address/random", h.createRandomAddress)
 		r.Post("/address/custom", h.createCustomAddress)
@@ -239,6 +241,49 @@ func (h *Handler) getMessage(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(msg)
+}
+
+func (h *Handler) getStatus(w http.ResponseWriter, r *http.Request) {
+	expired := h.cfg.IsExpired()
+	
+	response := map[string]interface{}{
+		"expired": expired,
+	}
+	
+	if h.cfg.ExpiredWeb != "" {
+		if expirationDate, err := h.cfg.GetExpirationDate(); err == nil {
+			response["expirationDate"] = expirationDate.Format("2006-01-02")
+		}
+	}
+	
+	if expired {
+		response["message"] = "This service has expired"
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *Handler) expirationMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Allow /api/status to always work so frontend can check expiration
+		if r.URL.Path == "/api/status" || r.URL.Path == "/api/healthz" || r.URL.Path == "/api/readyz" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		
+		// Check if expired
+		if h.cfg.IsExpired() {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "Service has expired",
+			})
+			return
+		}
+		
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (h *Handler) isValidDomain(d string) bool {
