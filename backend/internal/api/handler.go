@@ -79,8 +79,17 @@ func (h *Handler) Router() http.Handler {
 				r.Use(h.adminHandler.AuthMiddleware)
 				
 				r.Get("/admin/stats", h.adminHandler.GetStats)
+				
+				// Domains
 				r.Get("/admin/domains", h.adminHandler.GetDomains)
+				r.Post("/admin/domains", h.adminHandler.AddDomain)
+				r.Delete("/admin/domains/{domain}", h.adminHandler.RemoveDomain)
+				
+				// Config & Settings
 				r.Get("/admin/config", h.adminHandler.GetConfig)
+				r.Get("/admin/settings", h.adminHandler.GetSettings)
+				r.Post("/admin/settings", h.adminHandler.UpdateSettings)
+
 				r.Get("/admin/addresses", h.adminHandler.GetAddresses)
 				r.Get("/admin/messages", h.adminHandler.GetMessages)
 				r.Delete("/admin/messages/{id}", h.adminHandler.DeleteMessage)

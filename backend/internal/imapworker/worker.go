@@ -51,6 +51,18 @@ func (w *Worker) Start(ctx context.Context) {
 }
 
 func (w *Worker) process(ctx context.Context) error {
+	// Refresh config from Redis
+	if dynCfg, err := w.store.GetIMAPConfig(ctx); err == nil && dynCfg != nil {
+		w.cfg.IMAPHost = dynCfg.IMAPHost
+		w.cfg.IMAPPort = dynCfg.IMAPPort
+		w.cfg.IMAPUser = dynCfg.IMAPUser
+		w.cfg.IMAPPass = dynCfg.IMAPPass
+	}
+
+	if domains, err := w.store.GetDomains(ctx); err == nil && len(domains) > 0 {
+		w.cfg.AllowedDomains = domains
+	}
+
 	connStr := fmt.Sprintf("%s:%d", w.cfg.IMAPHost, w.cfg.IMAPPort)
 	c, err := client.DialTLS(connStr, nil)
 	if err != nil {

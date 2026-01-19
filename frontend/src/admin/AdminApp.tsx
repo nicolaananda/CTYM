@@ -4,9 +4,11 @@ import AdminLogin from './pages/AdminLogin';
 import Dashboard from './pages/Dashboard';
 import EmailViewer from './pages/EmailViewer';
 import SystemMonitoring from './pages/SystemMonitoring';
-import { LayoutDashboard, Mail, Activity, LogOut, Menu, X } from 'lucide-react';
+import DomainManagement from './pages/DomainManagement';
+import Settings from './pages/Settings';
+import { LayoutDashboard, Mail, Activity, LogOut, Menu, X, Globe, Settings as SettingsIcon } from 'lucide-react';
 
-type Page = 'dashboard' | 'emails' | 'monitoring';
+type Page = 'dashboard' | 'emails' | 'monitoring' | 'domains' | 'settings';
 
 export default function AdminApp() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -29,7 +31,9 @@ export default function AdminApp() {
     const menuItems = [
         { id: 'dashboard' as Page, label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
         { id: 'emails' as Page, label: 'Email Viewer', icon: <Mail size={20} /> },
+        { id: 'domains' as Page, label: 'Domains', icon: <Globe size={20} /> },
         { id: 'monitoring' as Page, label: 'Monitoring', icon: <Activity size={20} /> },
+        { id: 'settings' as Page, label: 'Settings', icon: <SettingsIcon size={20} /> },
     ];
 
     return (
@@ -150,7 +154,9 @@ export default function AdminApp() {
                 <div style={{ flex: 1, overflow: 'auto' }}>
                     {currentPage === 'dashboard' && <Dashboard />}
                     {currentPage === 'emails' && <EmailViewer />}
+                    {currentPage === 'domains' && <DomainManagement />}
                     {currentPage === 'monitoring' && <SystemMonitoring />}
+                    {currentPage === 'settings' && <Settings />}
                 </div>
             </div>
         </div>

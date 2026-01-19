@@ -113,12 +113,130 @@ func (h *AdminHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Get domains
+// Get domains (merged from ENV and Redis)
 func (h *AdminHandler) GetDomains(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	
+	// Get Redis domains
+	customDomains, _ := h.store.GetDomains(ctx)
+	
+	// Convert Env domains to map for uniqueness
+	domainMap := make(map[string]string) // domain -> source
+	
+	for _, d := range h.cfg.AllowedDomains {
+		domainMap[d] = "system"
+	}
+	
+	for _, d := range customDomains {
+		domainMap[d] = "custom"
+	}
+	
+	var result []map[string]string
+	for d, source := range domainMap {
+		result = append(result, map[string]string{
+			"name":   d,
+			"source": source,
+		})
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"domains": h.cfg.AllowedDomains,
+		"domains": result,
 	})
+}
+
+// Add domain
+func (h *AdminHandler) AddDomain(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Domain string `json:"domain"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Domain == "" {
+		http.Error(w, "Domain cannot be empty", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.store.AddDomain(r.Context(), req.Domain); err != nil {
+		http.Error(w, "Failed to add domain", http.StatusInternalServerError)
+		return
+	}
+	
+	w.WriteHeader(http.StatusOK)
+}
+
+// Remove domain
+func (h *AdminHandler) RemoveDomain(w http.ResponseWriter, r *http.Request) {
+	domain := chi.URLParam(r, "domain")
+	if domain == "" {
+		http.Error(w, "Domain cannot be empty", http.StatusBadRequest)
+		return
+	}
+
+	// Check if it's a system domain
+	for _, d := range h.cfg.AllowedDomains {
+		if d == domain {
+			http.Error(w, "Cannot remove system domain derived from environment variables", http.StatusForbidden)
+			return
+		}
+	}
+
+	if err := h.store.RemoveDomain(r.Context(), domain); err != nil {
+		http.Error(w, "Failed to remove domain", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// Get IMAP settings
+func (h *AdminHandler) GetSettings(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	
+	// Try get from Redis first
+	dynCfg, _ := h.store.GetIMAPConfig(ctx)
+	
+	response := map[string]interface{}{
+		"imap_host": h.cfg.IMAPHost,
+		"imap_port": h.cfg.IMAPPort,
+		"imap_user": h.cfg.IMAPUser,
+		"source":    "system",
+	}
+
+	if dynCfg != nil {
+		response["imap_host"] = dynCfg.IMAPHost
+		response["imap_port"] = dynCfg.IMAPPort
+		response["imap_user"] = dynCfg.IMAPUser
+		response["source"] = "custom"
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+// Update IMAP settings
+func (h *AdminHandler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Host     string `json:"imap_host"`
+		Port     int    `json:"imap_port"`
+		User     string `json:"imap_user"`
+		Password string `json:"imap_pass"`
+	}
+	
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	
+	if err := h.store.UpdateIMAPConfig(r.Context(), req.Host, req.Port, req.User, req.Password); err != nil {
+		http.Error(w, "Failed to update settings", http.StatusInternalServerError)
+		return
+	}
+	
+	w.WriteHeader(http.StatusOK)
 }
 
 // Get config

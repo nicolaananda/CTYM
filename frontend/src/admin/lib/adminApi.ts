@@ -75,14 +75,47 @@ export const adminApi = {
     // Domains
     getDomains: async () => {
         const client = createAuthClient();
-        const res = await client.get<{ domains: string[] }>('/admin/domains');
+        // Since backend handles backwards compatibility or merger, check backend response structure
+        // But we changed backend to return [{name, source}]
+        // Let's call it getDomainsWithSource internally for typing clarity if needed, or just update return type
+        const res = await client.get<{ domains: Array<{ name: string; source: 'system' | 'custom' }> }>('/admin/domains');
         return res.data.domains;
+    },
+
+    getDomainsWithSource: async () => {
+        const client = createAuthClient();
+        const res = await client.get<{ domains: Array<{ name: string; source: 'system' | 'custom' }> }>('/admin/domains');
+        return res.data.domains;
+    },
+
+    addDomain: async (domain: string) => {
+        const client = createAuthClient();
+        const res = await client.post('/admin/domains', { domain });
+        return res.data;
+    },
+
+    removeDomain: async (domain: string) => {
+        const client = createAuthClient();
+        const res = await client.delete(`/admin/domains/${domain}`);
+        return res.data;
     },
 
     // Config
     getConfig: async () => {
         const client = createAuthClient();
         const res = await client.get<AdminConfig>('/admin/config');
+        return res.data;
+    },
+
+    getSettings: async () => {
+        const client = createAuthClient();
+        const res = await client.get<{ imap_host: string; imap_port: number; imap_user: string; source: string }>('/admin/settings');
+        return res.data;
+    },
+
+    updateSettings: async (settings: { imap_host: string; imap_port: number; imap_user: string; imap_pass: string }) => {
+        const client = createAuthClient();
+        const res = await client.post('/admin/settings', settings);
         return res.data;
     },
 
