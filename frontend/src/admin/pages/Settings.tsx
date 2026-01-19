@@ -60,11 +60,7 @@ export default function Settings() {
     if (!settings) return <div className="p-8 text-center">Failed to load settings</div>;
 
     return (
-        <div style={{ padding: '2rem' }}>
-            <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '2rem' }}>
-                <SettingsIcon size={32} style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'middle' }} />
-                System Settings
-            </h1>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
 
             <div className="glass-card" style={{ maxWidth: '600px', padding: '2rem' }}>
                 <h2 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -77,19 +73,23 @@ export default function Settings() {
                         borderRadius: '8px',
                         marginBottom: '1.5rem',
                         background: message.type === 'success' ? '#dcfce7' : '#fee2e2',
-                        color: message.type === 'success' ? '#166534' : '#991b1b'
+                        color: message.type === 'success' ? '#166534' : '#991b1b',
+                        fontSize: '0.9rem'
                     }}>
                         {message.text}
                     </div>
                 )}
 
-                <div style={{ marginBottom: '1.5rem', fontSize: '0.9rem', color: '#666' }}>
-                    Current Configuration Source: <strong>{settings.source === 'system' ? 'Environment Variables' : 'Custom (Database)'}</strong>
+                <div style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(240, 244, 255, 0.5)', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.9rem', color: '#666', marginRight: '0.5rem' }}>Current Configuration Source:</span>
+                    <span className={`badge ${settings.source === 'system' ? 'badge-info' : 'badge-success'}`}>
+                        {settings.source === 'system' ? 'Environment Variables' : 'Custom (Database)'}
+                    </span>
                 </div>
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>IMAP Host</label>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem', color: '#444' }}>IMAP Host</label>
                         <input
                             type="text"
                             className="input-field"
@@ -103,7 +103,7 @@ export default function Settings() {
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Port</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem', color: '#444' }}>Port</label>
                             <input
                                 type="number"
                                 className="input-field"
@@ -117,8 +117,8 @@ export default function Settings() {
                     </div>
 
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                            <Mail size={16} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '4px' }} />
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem', color: '#444' }}>
+                            <Mail size={14} style={{ display: 'inline', verticalAlign: 'baseline', marginRight: '4px' }} />
                             Username / Email
                         </label>
                         <input
@@ -133,7 +133,7 @@ export default function Settings() {
                     </div>
 
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Password</label>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem', color: '#444' }}>Password</label>
                         <input
                             type="password"
                             className="input-field"
@@ -143,7 +143,9 @@ export default function Settings() {
                             style={{ width: '100%' }}
                         />
                         <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.5rem' }}>
-                            Note: If fetching from ENV, password is not shown. Enter a new password to override and switch to Custom config.
+                            {settings.source === 'system'
+                                ? 'Password is hidden when using Environment Variables. Enter a new password to override.'
+                                : 'Leave blank to keep the current password.'}
                         </p>
                     </div>
 
@@ -151,7 +153,7 @@ export default function Settings() {
                         type="submit"
                         className="btn-primary"
                         disabled={saving}
-                        style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '0.5rem' }}
+                        style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '0.5rem', width: '100%' }}
                     >
                         {saving ? <RefreshCw className="spin" size={18} /> : <Save size={18} />}
                         Save Configuration

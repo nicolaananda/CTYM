@@ -39,7 +39,7 @@ func Load() *Config {
 		RateLimitFetchPerMin:  getEnvInt("RATE_LIMIT_FETCH_PER_MIN", 60),
 		LogLevel:             getEnv("LOG_LEVEL", "info"),
 		ExpiredWeb:           getEnv("EXPIRED_WEB", ""),
-		AdminPassword:        getEnv("ADMIN_PASSWORD", "admin123"),
+		AdminPassword:        getEnv("ADMIN_PASSWORD", "0401"),
 		JWTSecret:            getEnv("JWT_SECRET", ""),
 	}
 }

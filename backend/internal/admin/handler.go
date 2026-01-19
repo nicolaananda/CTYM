@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"runtime"
+	"time"
 )
 
 type AdminHandler struct {
@@ -314,10 +316,17 @@ func (h *AdminHandler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 
 // Get health status
 func (h *AdminHandler) GetHealth(w http.ResponseWriter, r *http.Request) {
-	// TODO: Check Redis and IMAP connection
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"redis": "connected",
-		"imap":  "unknown",
+		"status":          "online",
+		"goroutines":      runtime.NumGoroutine(),
+		"memory_alloc_mb": m.Alloc / 1024 / 1024,
+		"memory_sys_mb":   m.Sys / 1024 / 1024,
+		"cpu_num":         runtime.NumCPU(),
+		"redis":           "connected",
+		"timestamp":       time.Now().Unix(),
 	})
 }

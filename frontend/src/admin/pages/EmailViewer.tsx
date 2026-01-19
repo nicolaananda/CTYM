@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminApi, type Message } from '../lib/adminApi';
-import { Mail, Trash2, Search, RefreshCw, Eye } from 'lucide-react';
+import { Mail, Trash2, Search, RefreshCw, Eye, ArrowLeft, Clock } from 'lucide-react';
+import dompurify from 'dompurify';
 
 export default function EmailViewer() {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -24,7 +25,8 @@ export default function EmailViewer() {
         fetchMessages();
     }, []);
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = async (id: string, e?: React.MouseEvent) => {
+        e?.stopPropagation();
         if (!confirm('Delete this message?')) return;
 
         try {
@@ -44,139 +46,149 @@ export default function EmailViewer() {
         m.original_to.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (selectedMessage) {
-        return (
-            <div style={{ padding: '2rem' }}>
-                <button
-                    onClick={() => setSelectedMessage(null)}
-                    className="btn-secondary"
-                    style={{ marginBottom: '1rem' }}
-                >
-                    ← Back to List
-                </button>
-
-                <div className="glass-card" style={{ padding: '2rem' }}>
-                    <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>{selectedMessage.subject}</h2>
-                    <div style={{ marginBottom: '1rem', color: '#666' }}>
-                        <div><strong>From:</strong> {selectedMessage.from}</div>
-                        <div><strong>To:</strong> {selectedMessage.original_to}</div>
-                        <div><strong>Date:</strong> {new Date(selectedMessage.date).toLocaleString()}</div>
-                    </div>
-                    <div
-                        dangerouslySetInnerHTML={{ __html: selectedMessage.html || selectedMessage.text }}
-                        style={{
-                            padding: '1rem',
-                            background: '#f9f9f9',
-                            borderRadius: '8px',
-                            minHeight: '200px'
-                        }}
-                    />
-                    <button
-                        onClick={() => handleDelete(selectedMessage.id)}
-                        className="btn-primary"
-                        style={{ marginTop: '1rem', background: '#ff4d4d' }}
-                    >
-                        <Trash2 size={18} /> Delete Message
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div style={{ padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>
-                    <Mail size={32} style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'middle' }} />
-                    Email Viewer
+        <div style={{ display: 'flex', flexDirection: 'column', height: '90vh', overflow: 'hidden' }}>
+            {/* Header Area */}
+            <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.5)' }}>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#333', letterSpacing: '-0.5px' }}>
+                    Email Inspector
                 </h1>
-                <button onClick={fetchMessages} className="btn-secondary">
-                    <RefreshCw size={18} className={loading ? 'spin' : ''} /> Refresh
+                <button
+                    onClick={fetchMessages}
+                    className="btn-secondary"
+                    style={{ background: 'white' }}
+                >
+                    <RefreshCw size={18} className={loading ? 'spin' : ''} style={{ marginRight: '0.5rem' }} />
+                    Refresh
                 </button>
             </div>
 
-            <div style={{ marginBottom: '1.5rem' }}>
-                <div style={{ position: 'relative' }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
-                    <input
-                        type="text"
-                        placeholder="Search by sender, subject, or recipient..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="input-field"
-                        style={{ paddingLeft: '3rem', width: '100%' }}
-                    />
-                </div>
-            </div>
+            {/* Split View Container */}
+            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
-            <div className="glass-card" style={{ padding: '1rem' }}>
-                {loading ? (
-                    <div style={{ textAlign: 'center', padding: '2rem' }}>
-                        <RefreshCw className="spin" size={32} color="#667eea" />
+                {/* LEFT: Message List */}
+                <div style={{ width: '400px', display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(0,0,0,0.1)', background: 'rgba(255,255,255,0.3)' }}>
+
+                    {/* Search Bar */}
+                    <div style={{ padding: '1rem', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                        <div style={{ position: 'relative' }}>
+                            <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+                            <input
+                                type="text"
+                                placeholder="Search emails..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="input-field"
+                                style={{ paddingLeft: '2.8rem', width: '100%', fontSize: '0.9rem', background: 'white' }}
+                            />
+                        </div>
                     </div>
-                ) : filteredMessages.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '3rem', color: '#999' }}>
-                        <Mail size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
-                        <p>No messages found</p>
+
+                    {/* Scrollable List */}
+                    <div style={{ flex: 1, overflowY: 'auto' }}>
+                        {loading ? (
+                            <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>Loading...</div>
+                        ) : filteredMessages.length === 0 ? (
+                            <div style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>No messages found</div>
+                        ) : (
+                            <div className="flex-col">
+                                {filteredMessages.map(msg => {
+                                    const isSelected = selectedMessage?.id === msg.id;
+                                    return (
+                                        <div
+                                            key={msg.id}
+                                            onClick={() => setSelectedMessage(msg)}
+                                            style={{
+                                                padding: '1rem',
+                                                borderBottom: '1px solid rgba(0,0,0,0.05)',
+                                                cursor: 'pointer',
+                                                background: isSelected ? 'white' : 'transparent',
+                                                borderLeft: isSelected ? '4px solid #8c52ff' : '4px solid transparent',
+                                                transition: 'all 0.1s'
+                                            }}
+                                            className="hover:bg-white/50"
+                                        >
+                                            <div className="flex-row justify-between" style={{ marginBottom: '0.2rem' }}>
+                                                <span className="truncate" style={{ fontWeight: 700, fontSize: '0.95rem', color: '#333', maxWidth: '70%' }}>
+                                                    {msg.from.split('<')[0].replace(/"/g, '')}
+                                                </span>
+                                                <span className="text-muted" style={{ fontSize: '0.75rem' }}>
+                                                    {new Date(msg.date).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                            <div style={{ fontWeight: 500, fontSize: '0.9rem', color: '#444', marginBottom: '0.2rem' }} className="truncate">
+                                                {msg.subject || '(No Subject)'}
+                                            </div>
+                                            <div className="truncate text-muted" style={{ fontSize: '0.8rem' }}>
+                                                → {msg.original_to}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
-                ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {filteredMessages.map(msg => (
-                            <div
-                                key={msg.id}
-                                style={{
-                                    padding: '1rem',
-                                    background: '#f9f9f9',
-                                    borderRadius: '8px',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    transition: 'all 0.2s',
-                                    cursor: 'pointer'
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.background = '#f0f0f0'}
-                                onMouseLeave={(e) => e.currentTarget.style.background = '#f9f9f9'}
-                            >
-                                <div style={{ flex: 1 }} onClick={() => setSelectedMessage(msg)}>
-                                    <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{msg.subject || '(No Subject)'}</div>
-                                    <div style={{ fontSize: '0.85rem', color: '#666' }}>
-                                        From: {msg.from} → To: {msg.original_to}
+                </div>
+
+                {/* RIGHT: Message Detail */}
+                <div style={{ flex: 1, overflowY: 'auto', padding: '0', background: 'rgba(255,255,255,0.6)', display: 'flex', flexDirection: 'column' }}>
+                    {selectedMessage ? (
+                        <div className="animate-fade-in" style={{ padding: '2rem', maxWidth: '900px', margin: '0 auto', width: '100%' }}>
+
+                            {/* Toolbar */}
+                            <div className="flex-row justify-between" style={{ marginBottom: '2rem' }}>
+                                <span className="badge badge-success">Received</span>
+                                <button
+                                    onClick={() => handleDelete(selectedMessage.id)}
+                                    className="btn-secondary"
+                                    style={{ color: '#ff4d4d', borderColor: 'rgba(255,77,77,0.3)' }}
+                                >
+                                    <Trash2 size={18} style={{ marginRight: '0.5rem' }} /> Delete
+                                </button>
+                            </div>
+
+                            {/* Header */}
+                            <div style={{ marginBottom: '2rem', paddingBottom: '1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+                                <h2 style={{ fontSize: '1.8rem', lineHeight: 1.3, marginBottom: '1rem', color: '#2d2d2d' }}>
+                                    {selectedMessage.subject || '(No Subject)'}
+                                </h2>
+
+                                <div className="flex-row" style={{ gap: '1rem', alignItems: 'flex-start' }}>
+                                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 700, color: '#666' }}>
+                                        {selectedMessage.from.charAt(0).toUpperCase()}
                                     </div>
-                                    <div style={{ fontSize: '0.8rem', color: '#999', marginTop: '0.25rem' }}>
-                                        {new Date(msg.date).toLocaleString()}
+                                    <div>
+                                        <div style={{ fontWeight: 700, color: '#333' }}>{selectedMessage.from}</div>
+                                        <div className="text-muted" style={{ fontSize: '0.9rem' }}>To: {selectedMessage.original_to}</div>
+                                        <div className="flex-row text-muted" style={{ fontSize: '0.85rem', marginTop: '0.3rem', gap: '0.5rem' }}>
+                                            <Clock size={14} />
+                                            {new Date(selectedMessage.date).toLocaleString()}
+                                        </div>
                                     </div>
-                                </div>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedMessage(msg);
-                                        }}
-                                        className="btn-icon"
-                                        title="View"
-                                    >
-                                        <Eye size={18} />
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDelete(msg.id);
-                                        }}
-                                        className="btn-icon"
-                                        title="Delete"
-                                        style={{ color: '#ff4d4d' }}
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                )}
-            </div>
 
-            <div style={{ marginTop: '1rem', textAlign: 'center', color: '#999', fontSize: '0.9rem' }}>
-                Showing {filteredMessages.length} of {messages.length} messages
+                            {/* Body */}
+                            <div
+                                className="email-body"
+                                dangerouslySetInnerHTML={{ __html: dompurify.sanitize(selectedMessage.html || selectedMessage.text) }}
+                                style={{
+                                    background: 'white',
+                                    padding: '2rem',
+                                    borderRadius: '12px',
+                                    boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
+                                    minHeight: '300px',
+                                    fontFamily: 'Inter, sans-serif'
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999', opacity: 0.6 }}>
+                            <Mail size={80} strokeWidth={1} style={{ marginBottom: '1rem' }} />
+                            <h3 style={{ fontSize: '1.5rem', fontWeight: 400 }}>Select a message to view</h3>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

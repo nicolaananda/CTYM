@@ -5,6 +5,7 @@ import (
 	"cattymail/internal/config"
 	"cattymail/internal/domain"
 	"cattymail/internal/redisstore"
+	"context"
 	"encoding/json"
 	"math/rand"
 	"fmt"
@@ -63,6 +64,7 @@ func (h *Handler) Router() http.Handler {
 			w.WriteHeader(http.StatusOK)
 		})
 		r.Get("/status", h.getStatus)
+		r.Get("/domains", h.getPublicDomains)
 
 		r.Post("/address/random", h.createRandomAddress)
 		r.Post("/address/custom", h.createCustomAddress)
@@ -99,6 +101,35 @@ func (h *Handler) Router() http.Handler {
 	})
 
 	return r
+}
+
+func (h *Handler) getPublicDomains(w http.ResponseWriter, r *http.Request) {
+	// Get static domains from config
+	domains := make([]string, len(h.cfg.AllowedDomains))
+	copy(domains, h.cfg.AllowedDomains)
+
+	// Get dynamic domains from Redis
+	dynamicDomains, err := h.store.GetDomains(r.Context())
+	if err == nil {
+		// Dedup map
+		seen := make(map[string]bool)
+		for _, d := range domains {
+			seen[d] = true
+		}
+		
+		// Add dynamic domains if not duplicate
+		for _, d := range dynamicDomains {
+			if !seen[d] {
+				domains = append(domains, d)
+				seen[d] = true
+			}
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string][]string{
+		"domains": domains,
+	})
 }
 
 type CreateAddressRequest struct {
@@ -153,7 +184,7 @@ func (h *Handler) createRandomAddress(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !h.isValidDomain(req.Domain) {
+	if !h.isValidDomain(r.Context(), req.Domain) {
 		http.Error(w, "Invalid domain", http.StatusBadRequest)
 		return
 	}
@@ -190,7 +221,7 @@ func (h *Handler) createCustomAddress(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !h.isValidDomain(req.Domain) {
+	if !h.isValidDomain(r.Context(), req.Domain) {
 		http.Error(w, "Invalid domain", http.StatusBadRequest)
 		return
 	}
@@ -325,12 +356,24 @@ func (h *Handler) expirationMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (h *Handler) isValidDomain(d string) bool {
+func (h *Handler) isValidDomain(ctx context.Context, d string) bool {
+	// 1. Check static config first
 	for _, allowed := range h.cfg.AllowedDomains {
 		if d == allowed {
 			return true
 		}
 	}
+	
+	// 2. Check dynamic domains from Redis
+	dynamicDomains, err := h.store.GetDomains(ctx)
+	if err == nil {
+		for _, allowed := range dynamicDomains {
+			if d == allowed {
+				return true
+			}
+		}
+	}
+	
 	return false
 }
 

@@ -49,6 +49,16 @@ export interface Message {
     local: string;
 }
 
+export interface SystemHealth {
+    status: string;
+    goroutines: number;
+    memory_alloc_mb: number;
+    memory_sys_mb: number;
+    cpu_num: number;
+    redis: string;
+    timestamp: number;
+}
+
 export const adminApi = {
     // Auth
     login: async (password: string) => {
@@ -146,7 +156,7 @@ export const adminApi = {
     // Health
     getHealth: async () => {
         const client = createAuthClient();
-        const res = await client.get<{ redis: string; imap: string }>('/admin/health');
+        const res = await client.get<SystemHealth>('/admin/health');
         return res.data;
     },
 };

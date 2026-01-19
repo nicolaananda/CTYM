@@ -27,72 +27,60 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     };
 
     return (
+
         <div style={{
             minHeight: '100vh',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+            // background: transparent - let body mesh show
         }}>
             <div className="glass-card animate-fade-in" style={{
                 maxWidth: '400px',
                 width: '100%',
                 padding: '3rem',
-                background: 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(10px)'
+                background: 'rgba(255, 255, 255, 0.8)',
+                backdropFilter: 'blur(20px)'
             }}>
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
                     <div style={{
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        width: '80px',
-                        height: '80px',
-                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #ff5ac8 0%, #8c52ff 100%)',
+                        width: '72px',
+                        height: '72px',
+                        borderRadius: '20px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         margin: '0 auto 1.5rem',
-                        boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)'
+                        boxShadow: '0 10px 25px rgba(255, 90, 200, 0.4)'
                     }}>
-                        <Lock size={40} color="white" />
+                        <Lock size={32} color="white" />
                     </div>
-                    <h1 style={{
+                    <h1 className="text-gradient" style={{
                         fontSize: '2rem',
                         marginBottom: '0.5rem',
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent'
+                        fontWeight: 800
                     }}>
-                        <Sparkles size={24} style={{ display: 'inline', marginRight: '0.5rem' }} />
-                        Admin Panel
+                        Admin Access
                     </h1>
-                    <p style={{ color: '#666', fontSize: '0.95rem' }}>CattyMail Administration</p>
+                    <p style={{ color: '#666', fontSize: '0.95rem', fontWeight: 500 }}>
+                        <Sparkles size={14} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle', color: '#ff5ac8' }} />
+                        CattyMail System
+                    </p>
                 </div>
 
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '0.5rem',
-                            fontWeight: 600,
-                            color: '#333',
-                            fontSize: '0.9rem'
-                        }}>
-                            Admin Password
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#444', fontSize: '0.9rem' }}>
+                            Password
                         </label>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="input-field"
-                            placeholder="Enter admin password"
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem 1rem',
-                                fontSize: '1rem',
-                                border: '2px solid #e0e0e0',
-                                borderRadius: '8px',
-                                transition: 'all 0.2s'
-                            }}
+                            placeholder="Enter your secure password"
+                            style={{ width: '100%' }}
                             required
                             autoFocus
                         />
@@ -101,14 +89,17 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                     {error && (
                         <div style={{
                             padding: '0.75rem',
-                            background: '#fee',
-                            border: '1px solid #fcc',
+                            background: '#fee2e2',
+                            color: '#991b1b',
                             borderRadius: '8px',
-                            color: '#c33',
                             fontSize: '0.9rem',
-                            textAlign: 'center'
+                            textAlign: 'center',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem'
                         }}>
-                            {error}
+                            <span style={{ fontWeight: 600 }}>!</span> {error}
                         </div>
                     )}
 
@@ -117,31 +108,24 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                         disabled={loading || !password}
                         className="btn-primary w-full"
                         style={{
+                            width: '100%',
+                            justifyContent: 'center',
                             padding: '0.875rem',
-                            fontSize: '1rem',
-                            fontWeight: 600,
-                            background: loading ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                            border: 'none',
-                            borderRadius: '8px',
-                            color: 'white',
-                            cursor: loading ? 'not-allowed' : 'pointer',
-                            transition: 'all 0.2s',
-                            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
+                            marginTop: '0.5rem',
+                            background: loading ? '#ccc' : undefined
                         }}
                     >
-                        {loading ? 'Logging in...' : 'Login'}
+                        {loading ? 'Authenticating...' : 'Login'}
                     </button>
                 </form>
 
                 <div style={{
-                    marginTop: '2rem',
-                    paddingTop: '1.5rem',
-                    borderTop: '1px solid #e0e0e0',
-                    textAlign: 'center'
+                    marginTop: '2.5rem',
+                    textAlign: 'center',
+                    color: '#999',
+                    fontSize: '0.8rem'
                 }}>
-                    <p style={{ fontSize: '0.85rem', color: '#999' }}>
-                        Secure admin access • CattyMail v1.0
-                    </p>
+                    Protected System • Unauthorized access prohibited
                 </div>
             </div>
         </div>

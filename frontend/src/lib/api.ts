@@ -44,5 +44,10 @@ export const api = {
   getStatus: async () => {
     const res = await axios.get<{ expired: boolean; expirationDate?: string; message?: string }>(`${API_BASE}/status`);
     return res.data;
+  },
+
+  getDomains: async () => {
+    const res = await axios.get<{ domains: string[] }>(`${API_BASE}/domains`);
+    return res.data.domains;
   }
 };

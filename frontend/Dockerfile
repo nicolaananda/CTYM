@@ -1,10 +1,10 @@
 # Stage 1: Build
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
-COPY package.json package-lock.json ./
-# Install dependencies including dev dependencies (needed for vite build)
-RUN npm ci
+# Copy source files first
 COPY . .
+# Install dependencies (this will create node_modules with correct permissions)
+RUN npm ci
 # Build the app to dist folder
 RUN npm run build
 

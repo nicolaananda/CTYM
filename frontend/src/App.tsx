@@ -17,7 +17,8 @@ function App() {
   const [selectedMsg, setSelectedMsg] = useState<Message | null>(null);
   const [loading, setLoading] = useState(false);
   const [customLocal, setCustomLocal] = useState('');
-  const [selectedDomain, setSelectedDomain] = useState('catty.my.id');
+  const [selectedDomain, setSelectedDomain] = useState('');
+  const [availableDomains, setAvailableDomains] = useState<string[]>(['catty.my.id']); // Fallback default
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [isExpired, setIsExpired] = useState(false);
@@ -32,6 +33,25 @@ function App() {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 3000);
   };
+
+  // Fetch available domains on mount
+  useEffect(() => {
+    const fetchDomains = async () => {
+      try {
+        const domains = await api.getDomains();
+        if (domains && domains.length > 0) {
+          setAvailableDomains(domains);
+          // Set default if not set
+          if (!selectedDomain) {
+            setSelectedDomain(domains[0]);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch domains', err);
+      }
+    };
+    fetchDomains();
+  }, []);
 
   // Check expiration status on mount
   useEffect(() => {
@@ -81,7 +101,8 @@ function App() {
   const handleRandom = async () => {
     setLoading(true);
     try {
-      const res = await api.createRandomAddress(selectedDomain);
+      const targetDomain = selectedDomain || availableDomains[0];
+      const res = await api.createRandomAddress(targetDomain);
       const newAddr = { local: res.local, domain: res.domain };
       setAddress(newAddr);
       localStorage.setItem('catty_address', JSON.stringify(newAddr));
@@ -100,7 +121,7 @@ function App() {
     if (!customLocal) return;
 
     let targetLocal = customLocal.trim();
-    let targetDomain = selectedDomain;
+    let targetDomain = selectedDomain || availableDomains[0];
 
     // Smart Parsing: Check if user entered a full email
     if (targetLocal.includes('@')) {
@@ -109,12 +130,12 @@ function App() {
         const potentialDomain = parts.pop();
         const potentialLocal = parts.join('@');
 
-        if (potentialDomain === 'catty.my.id' || potentialDomain === 'cattyprems.top') {
+        if (potentialDomain && availableDomains.includes(potentialDomain)) {
           targetLocal = potentialLocal;
           targetDomain = potentialDomain;
           setSelectedDomain(potentialDomain);
         } else {
-          showToast(`Only @catty.my.id or @cattyprems.top allowed.`, 'error');
+          showToast(`Invalid domain. Allowed: ${availableDomains.join(', ')}`, 'error');
           return;
         }
       }
@@ -193,7 +214,7 @@ function App() {
   }
 
   return (
-    <div className="container-center w-full">
+    <div className="app-container">
       {/* Toast Container */}
       <div className="toast-container">
         {toasts.map(t => (
@@ -258,8 +279,9 @@ function App() {
                   className="input-field custom-select text-center"
                   style={{ fontWeight: 600, color: '#444' }}
                 >
-                  <option value="catty.my.id">@catty.my.id</option>
-                  <option value="cattyprems.top">@cattyprems.top</option>
+                  {availableDomains.map(d => (
+                    <option key={d} value={d}>@{d}</option>
+                  ))}
                 </select>
               </div>
 

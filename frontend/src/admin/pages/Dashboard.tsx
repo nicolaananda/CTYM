@@ -45,12 +45,9 @@ export default function Dashboard() {
     }
 
     return (
-        <div style={{ padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#333' }}>
-                    <BarChart3 size={32} style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'middle' }} />
-                    Dashboard
-                </h1>
+        <div className="flex-col gap-4">
+            <div className="flex-row justify-between mb-4">
+                <div className="text-muted">Overview of system performance</div>
                 <button
                     onClick={fetchStats}
                     className="btn-secondary"
@@ -64,77 +61,81 @@ export default function Dashboard() {
             {/* Stats Cards */}
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
                 gap: '1.5rem',
                 marginBottom: '2rem'
             }}>
                 <StatCard
                     title="Total Addresses"
                     value={stats?.totalAddresses || 0}
-                    icon={<Users size={32} />}
-                    color="#667eea"
+                    icon={<Users size={28} />}
+                    color="#ff5ac8"
                 />
                 <StatCard
                     title="Total Messages"
                     value={stats?.totalMessages || 0}
-                    icon={<Mail size={32} />}
-                    color="#764ba2"
+                    icon={<Mail size={28} />}
+                    color="#8c52ff"
                 />
                 <StatCard
                     title="Active Addresses"
                     value={stats?.activeAddresses || 0}
-                    icon={<Activity size={32} />}
-                    color="#f093fb"
+                    icon={<Activity size={28} />}
+                    color="#34d399"
                 />
                 <StatCard
                     title="Messages (24h)"
                     value={stats?.messagesLast24h || 0}
-                    icon={<TrendingUp size={32} />}
-                    color="#4facfe"
+                    icon={<TrendingUp size={28} />}
+                    color="#fbbf24"
                 />
             </div>
 
-            {/* Domain Stats */}
-            <div className="glass-card" style={{ padding: '2rem' }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', color: '#333' }}>
-                    Messages by Domain
-                </h2>
-                {stats?.topDomains && stats.topDomains.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {stats.topDomains.map((item, idx) => (
-                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{
-                                    minWidth: '200px',
-                                    fontWeight: 600,
-                                    color: '#555'
-                                }}>
-                                    {item.domain}
-                                </div>
-                                <div style={{ flex: 1, background: '#f0f0f0', borderRadius: '8px', height: '32px', position: 'relative', overflow: 'hidden' }}>
-                                    <div style={{
-                                        width: `${Math.min((item.count / (stats.topDomains[0]?.count || 1)) * 100, 100)}%`,
-                                        height: '100%',
-                                        background: 'linear-gradient(90deg, #667eea, #764ba2)',
-                                        borderRadius: '8px',
-                                        transition: 'width 0.3s'
-                                    }} />
-                                </div>
-                                <div style={{
-                                    minWidth: '60px',
-                                    textAlign: 'right',
-                                    fontWeight: 700,
-                                    color: '#667eea'
-                                }}>
-                                    {item.count}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p style={{ color: '#999', textAlign: 'center', padding: '2rem' }}>
-                        No domain statistics available
-                    </p>
-                )}
+            {/* Domain Stats - Redesigned as Table */}
+            <div className="admin-table-container">
+                <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                    <h3 style={{ fontSize: '1.2rem', color: '#444' }}>Top Domains by Volume</h3>
+                </div>
+                <table className="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Domain</th>
+                            <th>Usage Distribution</th>
+                            <th style={{ textAlign: 'right' }}>Message Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {stats?.topDomains && stats.topDomains.length > 0 ? (
+                            stats.topDomains.map((item, idx) => (
+                                <tr key={idx}>
+                                    <td style={{ fontWeight: 600, color: '#555' }}>
+                                        {item.domain}
+                                    </td>
+                                    <td style={{ width: '50%' }}>
+                                        <div style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '8px', height: '12px', overflow: 'hidden', width: '100%' }}>
+                                            <div style={{
+                                                width: `${Math.min((item.count / (stats.topDomains[0]?.count || 1)) * 100, 100)}%`,
+                                                height: '100%',
+                                                background: 'linear-gradient(90deg, #ff5ac8, #8c52ff)',
+                                                borderRadius: '8px',
+                                                transition: 'width 0.5s ease-out'
+                                            }} />
+                                        </div>
+                                    </td>
+                                    <td style={{ textAlign: 'right', fontWeight: 700, fontFamily: 'Outfit' }}>
+                                        {item.count.toLocaleString()}
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={3} className="text-center" style={{ padding: '3rem', color: '#999' }}>
+                                    No domain statistics available yet.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
             </div>
         </div>
     );
@@ -149,43 +150,15 @@ interface StatCardProps {
 
 function StatCard({ title, value, icon, color }: StatCardProps) {
     return (
-        <div className="glass-card" style={{
-            padding: '1.5rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            cursor: 'default'
-        }}
-            onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.12)';
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '';
-            }}
-        >
-            <div style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '12px',
-                background: `linear-gradient(135deg, ${color}, ${color}dd)`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                flexShrink: 0
-            }}>
+        <div className="stat-card-enhanced">
+            <div className="stat-icon-wrapper" style={{ color: color }}>
                 {icon}
             </div>
-            <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>
-                    {title}
-                </div>
-                <div style={{ fontSize: '2rem', fontWeight: 700, color: '#333' }}>
-                    {value.toLocaleString()}
-                </div>
+            <div style={{ fontSize: '0.9rem', color: '#888', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.5px' }}>
+                {title}
+            </div>
+            <div style={{ fontSize: '2.5rem', fontWeight: 700, marginTop: '0.5rem', color: '#2d2d2d' }}>
+                {value.toLocaleString()}
             </div>
         </div>
     );
