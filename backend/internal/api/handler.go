@@ -4,9 +4,8 @@ import (
 	"cattymail/internal/config"
 	"cattymail/internal/domain"
 	"cattymail/internal/redisstore"
-	"crypto/rand"
-	"encoding/hex"
 	"encoding/json"
+	"math/rand"
 	"fmt"
 	"net"
 	"net/http"
@@ -66,6 +65,42 @@ type CreateAddressRequest struct {
 	Local  string `json:"local,omitempty"`
 }
 
+var indonesianNames = []string{
+	"adi", "agus", "ahmad", "andi", "arif", "bambang", "budi", "candra",
+	"dedi", "deni", "edi", "eko", "fajar", "ferry", "gunawan", "hadi",
+	"hendra", "indra", "joko", "kevin", "kurnia", "lukman", "made",
+	"mahendra", "muhammad", "nanda", "putra", "rahmat", "rendi", "rizki",
+	"sandi", "slamet", "sugeng", "taufik", "wahyu", "wawan", "yoga", "yudi",
+	"zainal", "zaki", "dewi", "fitri", "maya", "putri", "rani", "sari",
+	"wati", "yuni", "ani", "dian", "eka", "intan", "lina", "nina",
+	"ratna", "rina", "sinta", "tika", "wulan", "yanti",
+	"abdul", "aditya", "agung", "anwar", "ari", "arum", "astuti", "bagus",
+	"bayu", "bintang", "cahyo", "danang", "darmawan", "desy", "dwi", "enny",
+	"farhan", "febri", "galih", "gita", "hafiz", "hasan", "heru", "iman",
+	"irwan", "kartika", "kusuma", "lestari", "mulyono", "nur", "panji", "pratama",
+	"purnama", "ridwan", "saputra", "setiawan", "teguh", "tri", "utami", "widodo",
+	"ade", "adnan", "aisyah", "akbar", "alamsyah", "aldy", "ali", "alif",
+	"amalia", "aminah", "amir", "andika", "anggi", "anggun", "anisa", "annisa",
+	"antono", "apriani", "ardian", "arianto", "arifin", "ariyanto", "arizona", "arya",
+	"asri", "aura", "aziz", "azizah", "badar", "basuki", "benny", "berlian",
+	"bima", "bisma", "chairul", "citra", "damar", "danu", "darsono", "david",
+	"deri", "dicky", "didik", "dimas", "dina", "dinda", "erik", "erlangga",
+	"erna", "erwin", "fadlan", "fadli", "fany", "farid", "fathir", "fauzan",
+	"fauzi", "feby", "fira", "firman", "fitria", "gia", "gilang", "grace",
+	"gumilar", "hamzah", "hana", "hanif", "haris", "hendri", "hidayat", "hikmah",
+	"husen", "ibrahim", "ihsan", "ika", "ikhsan", "ikbal", "indah", "ira",
+	"irfan", "ismail", "iswan", "iwan", "jamal", "jefri", "johan", "juli",
+	"julia", "julio", "kadir", "kamal", "karina", "kasih", "kemal", "khairul",
+	"khoirul", "kiki", "komang", "krishna", "laksamana", "laras", "latif", "lia",
+	"linda", "lucky", "lutfi", "maman", "mansur", "mardi", "marwan", "maulana",
+	"mega", "melati", "mira", "muamar", "mulyadi", "munir", "mutia", "nabil",
+	"nadia", "nadir", "najwa", "nanang", "nasir", "naufal", "nazar", "nila",
+	"novi", "novita", "nugroho", "nurul", "nyoman", "okta", "oktavia", "panjaitan",
+	"permadi", "permata", "perdana", "ponco", "prasetyo", "prayitno", "puji", "purwanto",
+	"raden", "radit", "raffi", "rafli", "raihan", "rama", "ramadhan", "ramlan",
+	"raya", "reza", "rizal", "rizky", "roni", "rosyid", "rudy", "ruslan",
+}
+
 func (h *Handler) createRandomAddress(w http.ResponseWriter, r *http.Request) {
 	if !h.checkRateLimit(w, r, "create", h.cfg.RateLimitCreatePerMin) {
 		return
@@ -84,12 +119,11 @@ func (h *Handler) createRandomAddress(w http.ResponseWriter, r *http.Request) {
 
 	// Retry loop for random address
 	for i := 0; i < 5; i++ {
-		bytes := make([]byte, 4)
-		if _, err := rand.Read(bytes); err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-		local := hex.EncodeToString(bytes)
+		// Pick a random Indonesian name
+		name := indonesianNames[rand.Intn(len(indonesianNames))]
+		// Generate 5 random digits
+		digits := rand.Intn(90000) + 10000 // generates 10000-99999
+		local := fmt.Sprintf("%s%d", name, digits)
 
 		success, err := h.store.ReserveAddress(r.Context(), req.Domain, local)
 		if err != nil {
