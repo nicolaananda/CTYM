@@ -1,0 +1,16 @@
+[Unit]
+Description=CattyMail API Service
+After=network.target redis.service
+
+[Service]
+Type=simple
+User=cattymail
+Group=cattymail
+WorkingDirectory=/opt/cattymail/backend
+ExecStart=/opt/cattymail/backend/api
+Restart=always
+RestartSec=5
+EnvironmentFile=/etc/cattymail/env
+
+[Install]
+WantedBy=multi-user.target

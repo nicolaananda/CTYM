@@ -1,0 +1,16 @@
+[Unit]
+Description=CattyMail Ingestor Service
+After=network.target redis.service
+
+[Service]
+Type=simple
+User=cattymail
+Group=cattymail
+WorkingDirectory=/opt/cattymail/backend
+ExecStart=/opt/cattymail/backend/ingestor
+Restart=always
+RestartSec=10
+EnvironmentFile=/etc/cattymail/env
+
+[Install]
+WantedBy=multi-user.target
