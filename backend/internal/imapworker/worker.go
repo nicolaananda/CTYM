@@ -59,8 +59,31 @@ func (w *Worker) process(ctx context.Context) error {
 		w.cfg.IMAPPass = dynCfg.IMAPPass
 	}
 
-	if domains, err := w.store.GetDomains(ctx); err == nil && len(domains) > 0 {
-		w.cfg.AllowedDomains = domains
+	// Refresh domains from Redis and merge with system domains
+	if customDomains, err := w.store.GetDomains(ctx); err == nil && len(customDomains) > 0 {
+		// Create a map to track unique domains
+		domainMap := make(map[string]bool)
+
+		// Add system domains from ENV
+		for _, d := range w.cfg.AllowedDomains {
+			domainMap[d] = true
+		}
+
+		// Add custom domains from Redis
+		for _, d := range customDomains {
+			domainMap[d] = true
+		}
+
+		// Convert back to slice
+		var mergedDomains []string
+		for d := range domainMap {
+			mergedDomains = append(mergedDomains, d)
+		}
+
+		w.cfg.AllowedDomains = mergedDomains
+		log.Printf("Loaded domains: %v (system + custom from Redis)", w.cfg.AllowedDomains)
+	} else {
+		log.Printf("Using system domains only: %v", w.cfg.AllowedDomains)
 	}
 
 	connStr := fmt.Sprintf("%s:%d", w.cfg.IMAPHost, w.cfg.IMAPPort)
