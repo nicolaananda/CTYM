@@ -24,6 +24,7 @@ function App() {
   const [isExpired, setIsExpired] = useState(false);
   const [expirationDate, setExpirationDate] = useState<string | null>(null);
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Helper to show toast
   const showToast = (text: string, type: ToastType = 'info') => {
@@ -84,7 +85,7 @@ function App() {
     const fetchInbox = async () => {
       try {
         const msgs = await api.getInbox(address.domain, address.local);
-        setMessages(msgs);
+        setMessages(msgs || []); // Handle null response from API
       } catch (err) {
         console.error("Poll error", err);
       }
@@ -97,6 +98,20 @@ function App() {
       if (pollTimer.current) clearInterval(pollTimer.current);
     };
   }, [address]);
+
+  // Manual refresh
+  const handleManualRefresh = async () => {
+    if (!address || refreshing) return;
+    setRefreshing(true);
+    try {
+      const msgs = await api.getInbox(address.domain, address.local);
+      setMessages(msgs || []);
+    } catch (err) {
+      console.error("Refresh error", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const handleRandom = async () => {
     setLoading(true);
@@ -359,8 +374,8 @@ function App() {
           <div style={{ padding: '0' }}>
             <div className="flex-row justify-between" style={{ padding: '1rem 2rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(255,255,255,0.2)' }}>
               <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#555' }}>Inbox <span style={{ background: '#ff69b4', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '0.8rem', verticalAlign: 'middle' }}>{messages.length}</span></h3>
-              <button onClick={() => {/* Rely on auto-poll */ }} className="btn-icon">
-                <RefreshCw size={18} />
+              <button onClick={handleManualRefresh} className="btn-icon" title="Refresh inbox">
+                <RefreshCw size={18} className={refreshing ? 'spin' : ''} />
               </button>
             </div>
 

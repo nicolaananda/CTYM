@@ -7,8 +7,8 @@ import (
 	"cattymail/internal/redisstore"
 	"context"
 	"encoding/json"
-	"math/rand"
 	"fmt"
+	"math/rand"
 	"net"
 	"net/http"
 	"regexp"
@@ -22,8 +22,8 @@ import (
 )
 
 type Handler struct {
-	cfg         *config.Config
-	store       *redisstore.Store
+	cfg          *config.Config
+	store        *redisstore.Store
 	adminHandler *admin.AdminHandler
 }
 
@@ -46,7 +46,7 @@ func (h *Handler) Router() http.Handler {
 
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	
+
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "DELETE", "OPTIONS"},
@@ -68,25 +68,25 @@ func (h *Handler) Router() http.Handler {
 
 		r.Post("/address/random", h.createRandomAddress)
 		r.Post("/address/custom", h.createCustomAddress)
-		
+
 		r.Get("/inbox/{domain}/{local}", h.getInbox)
 		r.Get("/message/{id}", h.getMessage)
 
 		// Admin routes
 		if h.adminHandler != nil {
 			r.Post("/admin/login", h.adminHandler.Login)
-			
+
 			// Protected admin routes
 			r.Group(func(r chi.Router) {
 				r.Use(h.adminHandler.AuthMiddleware)
-				
+
 				r.Get("/admin/stats", h.adminHandler.GetStats)
-				
+
 				// Domains
 				r.Get("/admin/domains", h.adminHandler.GetDomains)
 				r.Post("/admin/domains", h.adminHandler.AddDomain)
 				r.Delete("/admin/domains/{domain}", h.adminHandler.RemoveDomain)
-				
+
 				// Config & Settings
 				r.Get("/admin/config", h.adminHandler.GetConfig)
 				r.Get("/admin/settings", h.adminHandler.GetSettings)
@@ -116,7 +116,7 @@ func (h *Handler) getPublicDomains(w http.ResponseWriter, r *http.Request) {
 		for _, d := range domains {
 			seen[d] = true
 		}
-		
+
 		// Add dynamic domains if not duplicate
 		for _, d := range dynamicDomains {
 			if !seen[d] {
@@ -248,7 +248,7 @@ func (h *Handler) createCustomAddress(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
-    // Success implied, proceed to respond
+	// Success implied, proceed to respond
 
 	h.respondWithAddress(w, req.Domain, local)
 }
@@ -267,7 +267,7 @@ func (h *Handler) respondWithAddress(w http.ResponseWriter, d, local string) {
 func (h *Handler) getInbox(w http.ResponseWriter, r *http.Request) {
 	domainParam := chi.URLParam(r, "domain")
 	localParam := chi.URLParam(r, "local")
-	
+
 	if !h.checkRateLimit(w, r, "fetch", h.cfg.RateLimitFetchPerMin) {
 		return
 	}
@@ -292,13 +292,17 @@ func (h *Handler) getInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Ensure we return [] not null in JSON
+	if msgs == nil {
+		msgs = []*domain.Message{}
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(msgs)
 }
 
 func (h *Handler) getMessage(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	
+
 	msg, err := h.store.GetMessage(r.Context(), id)
 	if err != nil {
 		http.Error(w, "Failed to fetch message", http.StatusInternalServerError)
@@ -315,21 +319,21 @@ func (h *Handler) getMessage(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) getStatus(w http.ResponseWriter, r *http.Request) {
 	expired := h.cfg.IsExpired()
-	
+
 	response := map[string]interface{}{
 		"expired": expired,
 	}
-	
+
 	if h.cfg.ExpiredWeb != "" {
 		if expirationDate, err := h.cfg.GetExpirationDate(); err == nil {
 			response["expirationDate"] = expirationDate.Format("2006-01-02")
 		}
 	}
-	
+
 	if expired {
 		response["message"] = "This service has expired"
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
@@ -341,7 +345,7 @@ func (h *Handler) expirationMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		
+
 		// Check if expired
 		if h.cfg.IsExpired() {
 			w.Header().Set("Content-Type", "application/json")
@@ -351,7 +355,7 @@ func (h *Handler) expirationMiddleware(next http.Handler) http.Handler {
 			})
 			return
 		}
-		
+
 		next.ServeHTTP(w, r)
 	})
 }
@@ -363,7 +367,7 @@ func (h *Handler) isValidDomain(ctx context.Context, d string) bool {
 			return true
 		}
 	}
-	
+
 	// 2. Check dynamic domains from Redis
 	dynamicDomains, err := h.store.GetDomains(ctx)
 	if err == nil {
@@ -373,7 +377,7 @@ func (h *Handler) isValidDomain(ctx context.Context, d string) bool {
 			}
 		}
 	}
-	
+
 	return false
 }
 
@@ -396,9 +400,9 @@ func (h *Handler) checkRateLimit(w http.ResponseWriter, r *http.Request, action 
 
 	allowed, err := h.store.RateLimit(r.Context(), ip, action, limit, time.Minute)
 	if err != nil {
-		// Open fail? Or block? Let's log and allow 
+		// Open fail? Or block? Let's log and allow
 		// For now, block on error to be safe or allowed
-		return true 
+		return true
 	}
 	if !allowed {
 		http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
@@ -406,5 +410,3 @@ func (h *Handler) checkRateLimit(w http.ResponseWriter, r *http.Request, action 
 	}
 	return true
 }
-
-
