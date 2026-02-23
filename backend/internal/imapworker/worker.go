@@ -140,6 +140,7 @@ func (w *Worker) processFolder(ctx context.Context, c *client.Client, folder str
 		return fmt.Errorf("failed to get last UID for %s: %w", folder, err)
 	}
 
+	log.Printf("Folder %s: lastUID=%d, UidNext=%d, Messages=%d", folder, lastUID, mbox.UidNext, mbox.Messages)
 	if lastUID >= mbox.UidNext {
 		return nil
 	}
@@ -165,7 +166,7 @@ func (w *Worker) processFolder(ctx context.Context, c *client.Client, folder str
 			newMaxUID = msg.Uid
 		}
 
-		processed, err := w.store.IsUIDProcessed(ctx, msg.Uid)
+		processed, err := w.store.IsUIDProcessed(ctx, folder, msg.Uid)
 		if err != nil {
 			log.Printf("Failed to check UID processed for %d: %v", msg.Uid, err)
 			continue
@@ -174,7 +175,7 @@ func (w *Worker) processFolder(ctx context.Context, c *client.Client, folder str
 			continue
 		}
 
-		if err := w.ingestMessage(ctx, msg, section); err != nil {
+		if err := w.ingestMessage(ctx, msg, section, folder); err != nil {
 			log.Printf("Failed to ingest message %d (%s): %v", msg.Uid, folder, err)
 		}
 	}
@@ -192,7 +193,7 @@ func (w *Worker) processFolder(ctx context.Context, c *client.Client, folder str
 	return nil
 }
 
-func (w *Worker) ingestMessage(ctx context.Context, msg *imap.Message, section *imap.BodySectionName) error {
+func (w *Worker) ingestMessage(ctx context.Context, msg *imap.Message, section *imap.BodySectionName, folder string) error {
 	r := msg.GetBody(section)
 	if r == nil {
 		return fmt.Errorf("server didn't return message body")
@@ -299,6 +300,7 @@ func (w *Worker) ingestMessage(ctx context.Context, msg *imap.Message, section *
 		Text:       textBody,
 		HTML:       htmlBody,
 		IMAPUID:    msg.Uid,
+		IMAPFolder: folder,
 	}
 
 	return w.store.SaveMessage(ctx, dbMsg)

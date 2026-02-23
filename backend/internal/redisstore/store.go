@@ -67,9 +67,9 @@ func (s *Store) SaveMessage(ctx context.Context, msg *domain.Message) error {
 	})
 	pipe.Expire(ctx, inboxKey, s.ttl)
 
-	// 3. Mark IMAP UID as processed (if present)
-	if msg.IMAPUID > 0 {
-		uidKey := fmt.Sprintf("imap:uid:%d", msg.IMAPUID)
+	// 3. Mark IMAP UID as processed (if present) - include folder for uniqueness
+	if msg.IMAPUID > 0 && msg.IMAPFolder != "" {
+		uidKey := fmt.Sprintf("imap:uid:%s:%d", msg.IMAPFolder, msg.IMAPUID)
 		pipe.Set(ctx, uidKey, "1", s.ttl)
 	}
 
@@ -77,8 +77,8 @@ func (s *Store) SaveMessage(ctx context.Context, msg *domain.Message) error {
 	return err
 }
 
-func (s *Store) IsUIDProcessed(ctx context.Context, uid uint32) (bool, error) {
-	key := fmt.Sprintf("imap:uid:%d", uid)
+func (s *Store) IsUIDProcessed(ctx context.Context, folder string, uid uint32) (bool, error) {
+	key := fmt.Sprintf("imap:uid:%s:%d", folder, uid)
 	exists, err := s.client.Exists(ctx, key).Result()
 	return exists > 0, err
 }

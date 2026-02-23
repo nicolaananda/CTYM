@@ -13,6 +13,7 @@ type Message struct {
 	Text       string    `json:"text"`
 	HTML       string    `json:"html,omitempty"`
 	IMAPUID    uint32    `json:"imap_uid,omitempty"`
+	IMAPFolder string    `json:"imap_folder,omitempty"`
 }
 
 type Address struct {
