@@ -5,6 +5,7 @@ import (
 	"cattymail/internal/domain"
 	"cattymail/internal/redisstore"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"log"
@@ -87,7 +88,7 @@ func (w *Worker) process(ctx context.Context) error {
 	}
 
 	connStr := fmt.Sprintf("%s:%d", w.cfg.IMAPHost, w.cfg.IMAPPort)
-	c, err := client.DialTLS(connStr, nil)
+	c, err := client.DialTLS(connStr, &tls.Config{InsecureSkipVerify: true})
 	if err != nil {
 		return fmt.Errorf("failed to dial IMAP: %w", err)
 	}
