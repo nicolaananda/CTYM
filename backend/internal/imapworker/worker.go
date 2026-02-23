@@ -98,6 +98,22 @@ func (w *Worker) process(ctx context.Context) error {
 		return fmt.Errorf("failed to login: %w", err)
 	}
 
+	// List all available IMAP folders for debugging
+	mailboxes := make(chan *imap.MailboxInfo, 20)
+	listDone := make(chan error, 1)
+	go func() {
+		listDone <- c.List("", "*", mailboxes)
+	}()
+	var folderNames []string
+	for m := range mailboxes {
+		folderNames = append(folderNames, m.Name)
+	}
+	if err := <-listDone; err != nil {
+		log.Printf("Failed to list IMAP folders: %v", err)
+	} else {
+		log.Printf("Available IMAP folders: %v", folderNames)
+	}
+
 	// Process multiple folders: INBOX + spam folders
 	folders := []string{"INBOX", "Spam", "Junk"}
 	for _, folder := range folders {
@@ -112,7 +128,8 @@ func (w *Worker) process(ctx context.Context) error {
 func (w *Worker) processFolder(ctx context.Context, c *client.Client, folder string) error {
 	mbox, err := c.Select(folder, false)
 	if err != nil {
-		// Folder might not exist, that's OK
+		// Folder might not exist, that's OK — but log it
+		log.Printf("Folder %s not found or failed to select: %v", folder, err)
 		return nil
 	}
 
