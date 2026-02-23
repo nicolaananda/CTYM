@@ -74,7 +74,20 @@ func (s *Store) SaveMessage(ctx context.Context, msg *domain.Message) error {
 	}
 
 	_, err = pipe.Exec(ctx)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// 4. Publish SSE notification
+	channel := fmt.Sprintf("inbox:%s:%s", msg.Domain, msg.Local)
+	_ = s.client.Publish(ctx, channel, msg.ID).Err()
+
+	return nil
+}
+
+func (s *Store) Subscribe(ctx context.Context, emailDomain, local string) *redis.PubSub {
+	channel := fmt.Sprintf("inbox:%s:%s", emailDomain, local)
+	return s.client.Subscribe(ctx, channel)
 }
 
 func (s *Store) IsUIDProcessed(ctx context.Context, folder string, uid uint32) (bool, error) {

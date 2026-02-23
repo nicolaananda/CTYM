@@ -70,6 +70,7 @@ func (h *Handler) Router() http.Handler {
 		r.Post("/address/custom", h.createCustomAddress)
 
 		r.Get("/inbox/{domain}/{local}", h.getInbox)
+		r.Get("/stream/{domain}/{local}", h.streamInbox)
 		r.Get("/message/{id}", h.getMessage)
 
 		// Admin routes
@@ -298,6 +299,54 @@ func (h *Handler) getInbox(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(msgs)
+}
+
+func (h *Handler) streamInbox(w http.ResponseWriter, r *http.Request) {
+	domainParam := chi.URLParam(r, "domain")
+	localParam := chi.URLParam(r, "local")
+
+	// Set SSE headers
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("X-Accel-Buffering", "no") // Disable Nginx buffering
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "Streaming not supported", http.StatusInternalServerError)
+		return
+	}
+
+	// Subscribe to Redis Pub/Sub for this inbox
+	pubsub := h.store.Subscribe(r.Context(), domainParam, localParam)
+	defer pubsub.Close()
+
+	// Send a keep-alive comment every 20s to prevent proxy timeouts
+	keepalive := time.NewTicker(20 * time.Second)
+	defer keepalive.Stop()
+
+	// Send initial ping so the client knows connection is established
+	fmt.Fprintf(w, ": connected\n\n")
+	flusher.Flush()
+
+	ch := pubsub.Channel()
+	for {
+		select {
+		case <-r.Context().Done():
+			return
+		case <-keepalive.C:
+			fmt.Fprintf(w, ": keepalive\n\n")
+			flusher.Flush()
+		case msg, ok := <-ch:
+			if !ok {
+				return
+			}
+			// Notify frontend: new email arrived
+			fmt.Fprintf(w, "event: new_message\ndata: %s\n\n", msg.Payload)
+			flusher.Flush()
+		}
+	}
 }
 
 func (h *Handler) getMessage(w http.ResponseWriter, r *http.Request) {

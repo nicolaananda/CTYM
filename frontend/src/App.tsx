@@ -12,7 +12,7 @@ interface ToastMsg {
 }
 
 function App() {
-  const [address, setAddress] = useState<{ local: string, domain: string } | null>(null);
+  const [address, setAddress] = useState<{ local: string, domain: string, expires_at?: string } | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedMsg, setSelectedMsg] = useState<Message | null>(null);
   const [loading, setLoading] = useState(false);
@@ -23,8 +23,11 @@ function App() {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [isExpired, setIsExpired] = useState(false);
   const [expirationDate, setExpirationDate] = useState<string | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<string>('');
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countdownTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [extractedOtp, setExtractedOtp] = useState<string | null>(null);
 
   // Helper to show toast
   const showToast = (text: string, type: ToastType = 'info') => {
@@ -78,24 +81,59 @@ function App() {
     }
   }, []);
 
-  // Poll for messages if address exists
+  // SSE + fallback polling for inbox updates
   useEffect(() => {
     if (!address) return;
 
     const fetchInbox = async () => {
       try {
         const msgs = await api.getInbox(address.domain, address.local);
-        setMessages(msgs || []); // Handle null response from API
+        setMessages(msgs || []);
       } catch (err) {
-        console.error("Poll error", err);
+        console.error("Inbox fetch error", err);
       }
     };
 
     fetchInbox(); // Initial fetch
-    pollTimer.current = setInterval(fetchInbox, 5000);
+
+    // Connect to SSE stream for real-time push
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+    const sseUrl = `${API_BASE}/stream/${address.domain}/${address.local}`;
+    const es = new EventSource(sseUrl);
+
+    es.addEventListener('new_message', () => {
+      fetchInbox(); // Immediately reload when new email arrives
+    });
+
+    es.onerror = () => {
+      // SSE connection dropped, it will auto-reconnect
+      console.warn('SSE connection lost, browser will auto-reconnect');
+    };
+
+    // Fallback poll every 30s in case SSE misses something
+    pollTimer.current = setInterval(fetchInbox, 30000);
+
+    // Update countdown timer every minute
+    const updateTimeRemaining = () => {
+      if (!address?.expires_at) return;
+      const t = Date.parse(address.expires_at) - Date.now();
+      if (t <= 0) {
+        setTimeRemaining('Expired');
+        setIsExpired(true);
+      } else {
+        const hours = Math.floor((t / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((t / 1000 / 60) % 60);
+        setTimeRemaining(`${hours}h ${minutes}m`);
+      }
+    };
+
+    updateTimeRemaining();
+    countdownTimer.current = setInterval(updateTimeRemaining, 60000);
 
     return () => {
+      es.close();
       if (pollTimer.current) clearInterval(pollTimer.current);
+      if (countdownTimer.current) clearInterval(countdownTimer.current);
     };
   }, [address]);
 
@@ -118,7 +156,7 @@ function App() {
     try {
       const targetDomain = selectedDomain || availableDomains[0];
       const res = await api.createRandomAddress(targetDomain);
-      const newAddr = { local: res.local, domain: res.domain };
+      const newAddr = { local: res.local, domain: res.domain, expires_at: res.expires_at };
       setAddress(newAddr);
       localStorage.setItem('catty_address', JSON.stringify(newAddr));
       setMessages([]);
@@ -166,7 +204,7 @@ function App() {
     setLoading(true);
     try {
       const res = await api.createCustomAddress(targetDomain, targetLocal);
-      const newAddr = { local: res.local, domain: res.domain };
+      const newAddr = { local: res.local, domain: res.domain, expires_at: res.expires_at };
       setAddress(newAddr);
       localStorage.setItem('catty_address', JSON.stringify(newAddr));
       setMessages([]);
@@ -194,10 +232,33 @@ function App() {
     }
   };
 
+  const extractOtp = (subject: string, body: string) => {
+    // Regex looking for 4-8 consecutive digits
+    // With optional context words around it (e.g. "code", "otp", "verifikasi", "verification")
+    const combinedText = (subject + " " + body).replace(/<[^>]*>?/gm, ''); // Strip HTML tags for cleaner matching
+
+    // Look for patterns like "code is 123456" or "OTP: 1234"
+    const contextRegex = /(?:code|otp|pin|token|verifikasi|verification|password|passcode)[\s:=-]+([0-9]{4,8})/i;
+    const contextMatch = combinedText.match(contextRegex);
+    if (contextMatch && contextMatch[1]) {
+      return contextMatch[1];
+    }
+
+    // Fallback: just find the first isolated 4-8 digit number
+    const isolatedRegex = /(?:\b|^)([0-9]{4,8})(?:\b|$)/;
+    const isolatedMatch = combinedText.match(isolatedRegex);
+    if (isolatedMatch && isolatedMatch[1]) {
+      return isolatedMatch[1];
+    }
+
+    return null;
+  };
+
   const selectMessage = async (id: string) => {
     try {
       const msg = await api.getMessage(id);
       setSelectedMsg(msg);
+      setExtractedOtp(extractOtp(msg.subject, msg.text || msg.html || ''));
     } catch (err) {
       console.error(err);
     }
@@ -261,6 +322,30 @@ function App() {
               <span>{new Date(selectedMsg.date).toLocaleString()}</span>
             </div>
           </div>
+
+          {extractedOtp && (
+            <div style={{ background: 'linear-gradient(135deg, #fff0f5 0%, #ffe6f0 100%)', border: '2px dashed #ffb3d9', borderRadius: '15px', padding: '1.5rem', marginBottom: '2rem', textAlign: 'center', boxShadow: '0 4px 15px rgba(255,105,180,0.1)' }}>
+              <div style={{ color: '#ff69b4', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Verification Code
+              </div>
+              <div className="flex-row" style={{ justifyContent: 'center', gap: '1rem' }}>
+                <span style={{ fontSize: '2.5rem', fontWeight: 800, color: '#333', letterSpacing: '4px', fontFamily: 'monospace' }}>
+                  {extractedOtp}
+                </span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(extractedOtp);
+                    showToast("Code Copied! 📋", "success");
+                  }}
+                  className="btn-icon"
+                  style={{ background: '#ff69b4', color: 'white', padding: '0.6rem', borderRadius: '50%' }}
+                  title="Copy Code"
+                >
+                  <Copy size={20} />
+                </button>
+              </div>
+            </div>
+          )}
 
           <div
             className="email-body"
@@ -368,6 +453,11 @@ function App() {
             <button onClick={handleLogout} className="text-muted text-sm" style={{ background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.2s', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <Trash2 size={14} /> Delete & Create New
             </button>
+            {timeRemaining && (
+              <div className="text-sm" style={{ fontWeight: 600, color: timeRemaining === 'Expired' ? '#ff4d4d' : '#999', marginTop: '-0.5rem' }}>
+                Expires in {timeRemaining}
+              </div>
+            )}
           </div>
 
           {/* Inbox List */}
