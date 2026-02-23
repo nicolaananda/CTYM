@@ -115,7 +115,7 @@ func (w *Worker) process(ctx context.Context) error {
 	}
 
 	// Process multiple folders: INBOX + spam folders
-	folders := []string{"INBOX", "Spam", "Junk"}
+	folders := []string{"INBOX", "INBOX.spam", "INBOX.Junk"}
 	for _, folder := range folders {
 		if err := w.processFolder(ctx, c, folder); err != nil {
 			log.Printf("Error processing folder %s: %v", folder, err)
