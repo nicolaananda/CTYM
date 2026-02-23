@@ -98,26 +98,29 @@ func (w *Worker) process(ctx context.Context) error {
 		return fmt.Errorf("failed to login: %w", err)
 	}
 
-	mbox, err := c.Select("INBOX", false)
-	if err != nil {
-		return fmt.Errorf("failed to select INBOX: %w", err)
+	// Process multiple folders: INBOX + spam folders
+	folders := []string{"INBOX", "Spam", "Junk"}
+	for _, folder := range folders {
+		if err := w.processFolder(ctx, c, folder); err != nil {
+			log.Printf("Error processing folder %s: %v", folder, err)
+		}
 	}
 
-	lastUID, err := w.store.GetLastProcessedUID(ctx)
+	return nil
+}
+
+func (w *Worker) processFolder(ctx context.Context, c *client.Client, folder string) error {
+	mbox, err := c.Select(folder, false)
 	if err != nil {
-		return fmt.Errorf("failed to get last UID: %w", err)
+		// Folder might not exist, that's OK
+		return nil
 	}
-	if lastUID == 0 {
-		// If 0, maybe we start from now? Or fetch all.
-		// Let's assume we want to process everything if it's the first time,
-		// OR maybe strict to "only new".
-		// If we want only new, we'd need to persist state better.
-		// For now, let's treat 0 as "start from beginning" but practically
-		// for a new deployment on an existing box, this might ingest old mail.
-		// Given catch-all, probably fine.
-		// But let's set lastUID to mbox.UidNext - 1 if we wanted to skip old.
-		// The prompt says "Fetch only new messages (UID > last_uid)".
-		// If last_uid is 0, then 1 > 0, so we fetch all.
+
+	// Use per-folder UID tracking
+	uidKey := folder // "INBOX", "Spam", etc.
+	lastUID, err := w.store.GetFolderLastUID(ctx, uidKey)
+	if err != nil {
+		return fmt.Errorf("failed to get last UID for %s: %w", folder, err)
 	}
 
 	if lastUID >= mbox.UidNext {
@@ -125,8 +128,6 @@ func (w *Worker) process(ctx context.Context) error {
 	}
 
 	seqSet := new(imap.SeqSet)
-	// We want UIDs > lastUID.
-	// Range: lastUID+1 : *
 	from := lastUID + 1
 	seqSet.AddRange(from, mbox.UidNext)
 
@@ -157,17 +158,17 @@ func (w *Worker) process(ctx context.Context) error {
 		}
 
 		if err := w.ingestMessage(ctx, msg, section); err != nil {
-			log.Printf("Failed to ingest message %d: %v", msg.Uid, err)
+			log.Printf("Failed to ingest message %d (%s): %v", msg.Uid, folder, err)
 		}
 	}
 
 	if err := <-done; err != nil {
-		return fmt.Errorf("fetch failed: %w", err)
+		return fmt.Errorf("fetch %s failed: %w", folder, err)
 	}
 
 	if newMaxUID > lastUID {
-		if err := w.store.SetLastProcessedUID(ctx, newMaxUID); err != nil {
-			log.Printf("Failed to update last UID: %v", err)
+		if err := w.store.SetFolderLastUID(ctx, uidKey, newMaxUID); err != nil {
+			log.Printf("Failed to update last UID for %s: %v", folder, err)
 		}
 	}
 

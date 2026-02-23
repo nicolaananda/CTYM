@@ -55,7 +55,7 @@ func (s *Store) SaveMessage(ctx context.Context, msg *domain.Message) error {
 	if err != nil {
 		return err
 	}
-	
+
 	pipe := s.client.Pipeline()
 	pipe.Set(ctx, msgKey, data, s.ttl)
 
@@ -98,9 +98,26 @@ func (s *Store) SetLastProcessedUID(ctx context.Context, uid uint32) error {
 	return s.client.Set(ctx, "imap:last_uid", uid, 0).Err()
 }
 
+func (s *Store) GetFolderLastUID(ctx context.Context, folder string) (uint32, error) {
+	key := fmt.Sprintf("imap:last_uid:%s", folder)
+	val, err := s.client.Get(ctx, key).Uint64()
+	if err == redis.Nil {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, err
+	}
+	return uint32(val), nil
+}
+
+func (s *Store) SetFolderLastUID(ctx context.Context, folder string, uid uint32) error {
+	key := fmt.Sprintf("imap:last_uid:%s", folder)
+	return s.client.Set(ctx, key, uid, 0).Err()
+}
+
 func (s *Store) GetInbox(ctx context.Context, emailDomain, local string, limit int, before int64) ([]*domain.Message, error) {
 	inboxKey := fmt.Sprintf("inbox:%s:%s", emailDomain, local)
-	
+
 	// Default range: -inf to +inf (all)
 	// If before is set, use it as max score exclusive
 	max := "+inf"
@@ -168,7 +185,7 @@ func (s *Store) GetMessage(ctx context.Context, id string) (*domain.Message, err
 
 func (s *Store) RateLimit(ctx context.Context, ip string, action string, limit int, window time.Duration) (bool, error) {
 	key := fmt.Sprintf("ratelimit:%s:%s", action, ip)
-	
+
 	pipe := s.client.Pipeline()
 	incr := pipe.Incr(ctx, key)
 	pipe.Expire(ctx, key, window)
