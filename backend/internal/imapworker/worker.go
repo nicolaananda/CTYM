@@ -126,6 +126,14 @@ func (w *Worker) processFolder(ctx context.Context, c *client.Client, folder str
 
 	seqSet := new(imap.SeqSet)
 	from := lastUID + 1
+
+	// FAST-FORWARD: If the gap between lastUID and UidNext is huge (e.g. fresh connection),
+	// only fetch the last 50 UIDs so we don't download years of old emails.
+	if from == 1 || mbox.UidNext > from+50 {
+		from = mbox.UidNext - 50
+		log.Printf("Gap too large (or first run)! Fast-forwarding fetch to UID %d", from)
+	}
+
 	seqSet.AddRange(from, mbox.UidNext)
 
 	messages := make(chan *imap.Message, 10)
