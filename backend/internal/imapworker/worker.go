@@ -114,8 +114,10 @@ func (w *Worker) processFolder(ctx context.Context, c *client.Client, folder str
 
 	log.Printf("Selected folder %s: Messages=%d, UidNext=%d", folder, mbox.Messages, mbox.UidNext)
 
-	// Use per-folder UID tracking
-	uidKey := folder // "INBOX", "Spam", etc.
+	// Use per-folder UID tracking tied to the specific IMAP user.
+	// This prevents the new email inbox from using the old inbox's high lastUID
+	// cached in Redis (e.g. 208825) causing it to ignore all new emails.
+	uidKey := w.cfg.IMAPUser + ":" + folder
 	lastUID, err := w.store.GetFolderLastUID(ctx, uidKey)
 	if err != nil {
 		return fmt.Errorf("failed to get last UID for %s: %w", folder, err)
@@ -133,7 +135,7 @@ func (w *Worker) processFolder(ctx context.Context, c *client.Client, folder str
 	var uids []uint32
 
 	// Search the folder for matching UIDs
-	if searchResults, err := c.Search(searchCrit); err == nil && len(searchResults) > 0 {
+	if searchResults, err := c.UidSearch(searchCrit); err == nil && len(searchResults) > 0 {
 		// Only consider UIDs that are strictly greater than what we already processed
 		for _, uid := range searchResults {
 			if uid >= from {
