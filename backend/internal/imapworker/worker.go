@@ -112,6 +112,8 @@ func (w *Worker) processFolder(ctx context.Context, c *client.Client, folder str
 		return nil
 	}
 
+	log.Printf("Selected folder %s: Messages=%d, UidNext=%d", folder, mbox.Messages, mbox.UidNext)
+
 	// Use per-folder UID tracking
 	uidKey := folder // "INBOX", "Spam", etc.
 	lastUID, err := w.store.GetFolderLastUID(ctx, uidKey)
@@ -119,22 +121,36 @@ func (w *Worker) processFolder(ctx context.Context, c *client.Client, folder str
 		return fmt.Errorf("failed to get last UID for %s: %w", folder, err)
 	}
 
-	log.Printf("Folder %s: lastUID=%d, UidNext=%d, Messages=%d", folder, lastUID, mbox.UidNext, mbox.Messages)
-	if lastUID >= mbox.UidNext {
+	// Try to find messages since Feb 1, 2026.
+	// This prevents the application from processing thousands of old messages
+	// from the Catch-All Gmail inbox.
+	searchCrit := imap.NewSearchCriteria()
+	sinceTime, _ := time.Parse("02-Jan-2006", "01-Feb-2026")
+	searchCrit.Since = sinceTime
+
+	// Default to lastUID mapping
+	from := lastUID + 1
+	var uids []uint32
+
+	// Search the folder for matching UIDs
+	if searchResults, err := c.Search(searchCrit); err == nil && len(searchResults) > 0 {
+		// Only consider UIDs that are strictly greater than what we already processed
+		for _, uid := range searchResults {
+			if uid >= from {
+				uids = append(uids, uid)
+			}
+		}
+	} else {
+		log.Printf("Search failed or no new messages since Feb 2026 in %s", folder)
 		return nil
 	}
 
-	seqSet := new(imap.SeqSet)
-	from := lastUID + 1
-
-	// FAST-FORWARD: If the gap between lastUID and UidNext is huge (e.g. fresh connection),
-	// only fetch the last 50 UIDs so we don't download years of old emails.
-	if from == 1 || mbox.UidNext > from+50 {
-		from = mbox.UidNext - 50
-		log.Printf("Gap too large (or first run)! Fast-forwarding fetch to UID %d", from)
+	if len(uids) == 0 {
+		return nil // No new messages to process
 	}
 
-	seqSet.AddRange(from, mbox.UidNext)
+	seqSet := new(imap.SeqSet)
+	seqSet.AddNum(uids...)
 
 	messages := make(chan *imap.Message, 10)
 	done := make(chan error, 1)
