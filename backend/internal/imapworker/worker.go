@@ -52,13 +52,8 @@ func (w *Worker) Start(ctx context.Context) {
 }
 
 func (w *Worker) process(ctx context.Context) error {
-	// Refresh config from Redis
-	if dynCfg, err := w.store.GetIMAPConfig(ctx); err == nil && dynCfg != nil {
-		w.cfg.IMAPHost = dynCfg.IMAPHost
-		w.cfg.IMAPPort = dynCfg.IMAPPort
-		w.cfg.IMAPUser = dynCfg.IMAPUser
-		w.cfg.IMAPPass = dynCfg.IMAPPass
-	}
+	// We no longer refresh IMAP config from Redis.
+	// We will use the hardcoded/env config directly as requested by the user.
 
 	// Refresh domains from Redis and merge with system domains
 	if customDomains, err := w.store.GetDomains(ctx); err == nil && len(customDomains) > 0 {
@@ -291,8 +286,10 @@ func (w *Worker) ingestMessage(ctx context.Context, msg *imap.Message, section *
 }
 
 func (w *Worker) extractRecipient(h mail.Header) string {
-	// Try system headers first (most reliable for catch-all)
-	sysHeaders := []string{"Delivered-To", "X-Original-To", "Envelope-To", "X-Envelope-To", "X-Forwarded-To"}
+	// In a forwarded Gmail setup, the original recipient is usually in X-Forwarded-To
+	// or Delivered-To (though Delivered-To might be the Gmail address itself).
+	// Let's check X-Forwarded-To first, then Envelope-To, then Delivered-To.
+	sysHeaders := []string{"X-Forwarded-To", "Envelope-To", "X-Envelope-To", "X-Original-To", "Delivered-To", "To"}
 	for _, key := range sysHeaders {
 		if val := h.Get(key); val != "" {
 			log.Printf("  Checking header %s: %s", key, val)
