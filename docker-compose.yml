@@ -13,7 +13,7 @@ services:
     networks:
       - ctym-net
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -43,10 +43,10 @@ services:
     restart: always
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - IMAP_HOST=mail.nicola.id
+      - IMAP_HOST=imap.gmail.com
       - IMAP_PORT=993
-      - IMAP_USER=catsflix@nicola.id
-      - IMAP_PASS=${IMAP_PASS}
+      - IMAP_USER=ananda.nampung@gmail.com
+      - IMAP_PASS=pbslvxbkgqnhczmo
       - ALLOWED_DOMAINS=catty.my.id,cattyprems.top
     networks:
       - ctym-net
