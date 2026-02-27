@@ -1,11 +1,22 @@
 version: '3.8'
 
+networks:
+  ctym-net:
+    driver: bridge
+
 services:
   redis:
     image: redis:alpine
     # No external port - internal only
     volumes:
       - redis_data:/data
+    networks:
+      - ctym-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   api:
     build:
@@ -19,8 +30,11 @@ services:
       - ALLOWED_DOMAINS=catty.my.id,cattyprems.top
       - RATE_LIMIT_CREATE_PER_MIN=10
       - RATE_LIMIT_FETCH_PER_MIN=60
+    networks:
+      - ctym-net
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
 
   ingestor:
     build:
@@ -34,8 +48,11 @@ services:
       - IMAP_USER=catsflix@nicola.id
       - IMAP_PASS=${IMAP_PASS}
       - ALLOWED_DOMAINS=catty.my.id,cattyprems.top
+    networks:
+      - ctym-net
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
 
   frontend:
     build:
@@ -44,6 +61,8 @@ services:
     restart: always
     ports:
       - "4412:80"
+    networks:
+      - ctym-net
     depends_on:
       - api
 
