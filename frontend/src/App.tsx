@@ -296,8 +296,8 @@ function App() {
         {toasts.map(t => (
           <div key={t.id} className={`toast ${t.type}`}>
             {t.type === 'success' && <CheckCircle size={20} color="#4CAF50" />}
-            {t.type === 'error' && <XCircle size={20} color="#ff4d4d" />}
-            {t.type === 'info' && <Sparkles size={20} color="#ff69b4" />}
+            {t.type === 'error' && <XCircle size={20} color="#e50914" />}
+            {t.type === 'info' && <Sparkles size={20} color="#fff" />}
             {t.text}
           </div>
         ))}
@@ -353,7 +353,23 @@ function App() {
         </div>
       ) : !address ? (
         <div className="flex-col w-full items-center justify-center animate-fade-in" style={{ minHeight: '80vh', textAlign: 'center', padding: '0 20px', zIndex: 5, position: 'relative' }}>
-          <div style={{ maxWidth: '900px', width: '100%' }}>
+
+          {/* Netflix Background Collage */}
+          <div style={{
+            position: 'fixed',
+            top: 0, left: 0, width: '100vw', height: '100vh',
+            backgroundImage: 'url("https://assets.nflxext.com/ffe/siteui/vlv3/a73c4363-1dcd-4719-b3b1-3725418fd91d/fe1147dd-78be-44aa-a0e5-2d2994305a13/ID-en-20231016-popsignuptwoweeks-perspective_alpha_website_large.jpg")',
+            backgroundSize: 'cover', backgroundPosition: 'center', zIndex: -2
+          }}>
+            <div style={{
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(0,0,0,0.4)',
+              backgroundImage: 'linear-gradient(to top, rgba(0,0,0,0.9) 0, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.8) 100%)',
+              backdropFilter: 'blur(5px)', WebkitBackdropFilter: 'blur(5px)'
+            }} />
+          </div>
+
+          <div style={{ maxWidth: '900px', width: '100%', padding: '2rem 0' }}>
             <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 900, marginBottom: '1rem', lineHeight: 1.1, color: '#fff' }}>Unlimited temporary emails, <br />inboxes, and more</h1>
             <p style={{ fontSize: '1.5rem', marginBottom: '1.5rem', color: '#fff', fontWeight: 500 }}>Read anywhere. Cancel anytime.</p>
             <p style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: '#fff', fontWeight: 400 }}>Ready to read? Enter a username or generate a random one to auto-create an inbox.</p>
