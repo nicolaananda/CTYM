@@ -303,33 +303,31 @@ function App() {
         ))}
       </div>
 
-      <div style={{ marginBottom: '3rem' }}>
-        <h1 style={{ fontSize: '3.5rem', background: 'linear-gradient(45deg, #FF69B4, #FF1493)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', filter: 'drop-shadow(0 2px 10px rgba(255,105,180,0.3))' }}>
-          <Sparkles size={48} color="#FF69B4" fill="#FF69B4" /> CattyMail
-        </h1>
-      </div>
+      <header style={{ position: 'absolute', top: 0, left: 0, width: '100%', padding: '1.5rem 5%', display: 'flex', zIndex: 10 }}>
+        <h1 style={{ color: '#e50914', fontSize: '2.5rem', letterSpacing: '-1px', textTransform: 'uppercase', margin: 0, fontWeight: 900 }}>CattyMail</h1>
+      </header>
 
       {selectedMsg ? (
-        <div className="glass-card animate-fade-in w-full" style={{ maxWidth: '800px' }}>
-          <button onClick={() => setSelectedMsg(null)} className="btn-secondary flex-row" style={{ marginBottom: '1.5rem', border: 'none', paddingLeft: 0 }}>
-            <ArrowLeft size={20} /> Back to Inbox
+        <div className="glass-card animate-fade-in w-full" style={{ maxWidth: '800px', marginTop: '4rem', background: '#181818', border: 'none', borderRadius: '4px' }}>
+          <button onClick={() => setSelectedMsg(null)} className="btn-secondary flex-row" style={{ marginTop: '-1rem', marginBottom: '1.5rem', border: 'none', paddingLeft: 0, background: 'transparent', color: '#b3b3b3' }}>
+            <ArrowLeft size={20} /> <span style={{ marginLeft: '0.4rem' }}>Back to Inbox</span>
           </button>
 
-          <div style={{ borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '1rem', marginBottom: '1rem' }}>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{selectedMsg.subject}</h2>
-            <div className="flex-row justify-between text-muted text-sm" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
-              <span>From: <b>{selectedMsg.from}</b></span>
+          <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem', marginBottom: '1rem' }}>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#fff' }}>{selectedMsg.subject}</h2>
+            <div className="flex-row justify-between text-muted text-sm" style={{ flexWrap: 'wrap', gap: '0.5rem', color: '#b3b3b3' }}>
+              <span>From: <b style={{ color: '#fff' }}>{selectedMsg.from}</b></span>
               <span>{new Date(selectedMsg.date).toLocaleString()}</span>
             </div>
           </div>
 
           {extractedOtp && (
-            <div style={{ background: 'linear-gradient(135deg, #fff0f5 0%, #ffe6f0 100%)', border: '2px dashed #ffb3d9', borderRadius: '15px', padding: '1.5rem', marginBottom: '2rem', textAlign: 'center', boxShadow: '0 4px 15px rgba(255,105,180,0.1)' }}>
-              <div style={{ color: '#ff69b4', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <div style={{ background: '#333', border: '1px solid #444', borderRadius: '4px', padding: '1.5rem', marginBottom: '2rem', textAlign: 'center' }}>
+              <div style={{ color: '#b3b3b3', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Verification Code
               </div>
               <div className="flex-row" style={{ justifyContent: 'center', gap: '1rem' }}>
-                <span style={{ fontSize: '2.5rem', fontWeight: 800, color: '#333', letterSpacing: '4px', fontFamily: 'monospace' }}>
+                <span style={{ fontSize: '2.5rem', fontWeight: 800, color: '#fff', letterSpacing: '4px', fontFamily: 'monospace' }}>
                   {extractedOtp}
                 </span>
                 <button
@@ -338,7 +336,7 @@ function App() {
                     showToast("Code Copied! 📋", "success");
                   }}
                   className="btn-icon"
-                  style={{ background: '#ff69b4', color: 'white', padding: '0.6rem', borderRadius: '50%' }}
+                  style={{ background: '#e50914', color: 'white', padding: '0.6rem', borderRadius: '4px', border: 'none', cursor: 'pointer' }}
                   title="Copy Code"
                 >
                   <Copy size={20} />
@@ -350,182 +348,134 @@ function App() {
           <div
             className="email-body"
             dangerouslySetInnerHTML={{ __html: dompurify.sanitize(selectedMsg.html || selectedMsg.text) }}
-            style={{ lineHeight: '1.6', color: '#444' }}
+            style={{ lineHeight: '1.6', color: '#000', background: '#fff', padding: '2rem', borderRadius: '4px' }}
           />
         </div>
       ) : !address ? (
-        <div className="flex-col w-full items-center">
-          <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '3rem', position: 'relative', overflow: 'visible' }}>
-            {/* Decorative Elements */}
-            <div style={{ position: 'absolute', top: '-25px', right: '-25px', background: 'white', padding: '1rem', borderRadius: '50%', boxShadow: '0 8px 30px rgba(255,105,180,0.3)', transform: 'rotate(15deg)' }}>
-              <Sparkles size={36} color="#FF69B4" fill="#FFC0CB" />
-            </div>
+        <div className="flex-col w-full items-center justify-center animate-fade-in" style={{ minHeight: '80vh', textAlign: 'center', padding: '0 20px', zIndex: 5, position: 'relative' }}>
+          <div style={{ maxWidth: '900px', width: '100%' }}>
+            <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 900, marginBottom: '1rem', lineHeight: 1.1, color: '#fff' }}>Unlimited temporary emails, <br />inboxes, and more</h1>
+            <p style={{ fontSize: '1.5rem', marginBottom: '1.5rem', color: '#fff', fontWeight: 500 }}>Read anywhere. Cancel anytime.</p>
+            <p style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: '#fff', fontWeight: 400 }}>Ready to read? Enter a username or generate a random one to auto-create an inbox.</p>
 
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <h3 style={{ marginBottom: '0.8rem', fontSize: '2.5rem', color: '#2d2d2d', lineHeight: 1.2 }}>
-                Get Your <br /><span className="text-gradient">Temporary Email</span>
-              </h3>
-              <p className="text-muted" style={{ fontSize: '1.1rem', lineHeight: 1.5 }}>
-                Instant. Anonymous. Auto-expires in 24 hours.<br />No sign-up required.
-              </p>
-            </div>
-
-            <div className="flex-col" style={{ gap: '1.5rem' }}>
-              {/* Domain Selection */}
-              <div className="select-wrapper">
+            <form onSubmit={handleCustom} className="flex-row" style={{ gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '2rem' }}>
+              <div style={{ flex: '1 1 auto', minWidth: '300px', maxWidth: '500px', display: 'flex', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '4px', overflow: 'hidden' }}>
+                <input
+                  type="text"
+                  placeholder="Email address"
+                  value={customLocal}
+                  onChange={(e) => setCustomLocal(e.target.value)}
+                  style={{ flex: 1, background: 'transparent', border: 'none', padding: '1.25rem 1rem', color: 'white', fontSize: '1rem', outline: 'none' }}
+                />
                 <select
                   value={selectedDomain}
                   onChange={(e) => setSelectedDomain(e.target.value)}
-                  className="input-field custom-select text-center"
-                  style={{ fontWeight: 600, color: '#444' }}
+                  style={{ background: 'transparent', border: 'none', borderLeft: '1px solid rgba(255,255,255,0.4)', padding: '0 1rem', color: '#fff', fontSize: '1rem', outline: 'none', cursor: 'pointer', appearance: 'none', minWidth: '120px' }}
                 >
                   {availableDomains.map(d => (
-                    <option key={d} value={d}>@{d}</option>
+                    <option key={d} value={d} style={{ color: 'black' }}>@{d}</option>
                   ))}
                 </select>
               </div>
 
-              {/* Main CTA */}
               <button
-                onClick={handleRandom}
+                type={customLocal ? "submit" : "button"}
+                onClick={(e) => {
+                  if (!customLocal) { e.preventDefault(); handleRandom(); }
+                }}
                 disabled={loading}
-                className="btn-primary w-full btn-lg"
-                style={{ justifyContent: 'center' }}
+                className="btn-primary btn-lg"
+                style={{ fontSize: '1.5rem', padding: '0.8rem 2rem', fontWeight: 700, borderRadius: '4px', whiteSpace: 'nowrap' }}
               >
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Sparkles size={20} fill="white" /> Create Instant Email</span>
-                {loading && <RefreshCw className="spin" size={24} style={{ marginLeft: 'auto' }} />}
+                {loading ? <RefreshCw className="spin" size={24} /> : (customLocal ? 'Get Started >' : 'Random >')}
               </button>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '0.5rem 0' }}>
-                <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent)' }}></div>
-                <span className="text-muted text-sm" style={{ fontFamily: 'Outfit', letterSpacing: '2px', fontWeight: 700, fontSize: '0.75rem', color: '#999' }}>OR ENTER YOUR OWN</span>
-                <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent)' }}></div>
-              </div>
-
-              {/* Custom Input Form - STACKED LAYOUT */}
-              <form onSubmit={handleCustom} className="flex-col" style={{ gap: '1rem', width: '100%' }}>
-                <input
-                  type="text"
-                  placeholder="e.g. myname"
-                  value={customLocal}
-                  onChange={(e) => setCustomLocal(e.target.value)}
-                  className="input-field text-center"
-                  style={{ maxWidth: '100%' }}
-                />
-                <button
-                  type="submit"
-                  disabled={loading || !customLocal}
-                  className="btn-primary w-full btn-lg"
-                  style={{
-                    justifyContent: 'center',
-                    opacity: customLocal ? 1 : 0.7,
-                    marginTop: '0.5rem',
-                    background: customLocal ? 'linear-gradient(135deg, #8c52ff 0%, #ff5ac8 100%)' : '#ccc'
-                  }}
-                >
-                  <span style={{ textAlign: 'center' }}>Use This Address</span>
-                  <ArrowLeft size={18} style={{ transform: 'rotate(180deg)', marginLeft: '8px' }} />
-                </button>
-              </form>
-            </div>
+            </form>
           </div>
         </div>
       ) : (
-        <div className="glass-card animate-fade-in w-full" style={{ maxWidth: '800px', padding: '0' }}>
-          {/* Header */}
-          <div style={{ padding: '2rem', background: 'rgba(255,255,255,0.4)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.5)' }}>
-            <div className="text-muted text-sm" style={{ letterSpacing: '1px', fontWeight: 600 }}>YOUR TEMPORARY INBOX</div>
-
-            <div className="flex-row" style={{ background: 'linear-gradient(135deg, #fff 0%, #fff0f5 100%)', padding: '0.8rem 1.5rem', borderRadius: '50px', border: '1px solid #ffdbed', boxShadow: '0 8px 16px rgba(255,105,180,0.1)', flexWrap: 'wrap', justifyContent: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '1.3rem', fontWeight: '700', color: '#333', background: 'linear-gradient(90deg, #333, #666)', WebkitBackgroundClip: 'text', textAlign: 'center', wordBreak: 'break-all' }}>
-                {address.local}@{address.domain}
-              </span>
-              <button
-                onClick={copyToClipboard}
-                className="btn-icon"
-                style={{ marginLeft: '0.4rem', color: '#ff69b4', background: 'rgba(255,255,255,0.8)', padding: '0.4rem', borderRadius: '50%' }}
-                title="Copy to clipboard"
-              >
-                <Copy size={18} />
-              </button>
-            </div>
-
-            <button onClick={handleLogout} className="text-muted text-sm" style={{ background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.2s', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Trash2 size={14} /> Delete & Create New
-            </button>
-            {timeRemaining && (
-              <div className="text-sm" style={{ fontWeight: 600, color: timeRemaining === 'Expired' ? '#ff4d4d' : '#999', marginTop: '-0.5rem' }}>
-                Expires in {timeRemaining}
+        <div className="animate-fade-in w-full" style={{ maxWidth: '1000px', marginTop: '4rem', padding: '0 20px' }}>
+          {/* Header Row */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <h2 style={{ color: '#fff', fontSize: '1.8rem', fontWeight: 600, margin: 0 }}>
+              Inbox <span style={{ fontSize: '1rem', color: '#b3b3b3', fontWeight: 400, marginLeft: '0.5rem' }}>({messages.length})</span>
+            </h2>
+            <div className="flex-row" style={{ gap: '0.5rem' }}>
+              <div style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.2)', padding: '0.5rem 1rem', borderRadius: '4px', color: '#fff', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontWeight: 600 }}>{address.local}</span><span style={{ color: '#b3b3b3' }}>@{address.domain}</span>
+                <button onClick={copyToClipboard} style={{ background: 'none', border: 'none', color: '#b3b3b3', padding: '0 0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Copy email">
+                  <Copy size={16} />
+                </button>
               </div>
-            )}
-          </div>
-
-          {/* Inbox List */}
-          <div style={{ padding: '0' }}>
-            <div className="flex-row justify-between" style={{ padding: '1rem 2rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(255,255,255,0.2)' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#555' }}>Inbox <span style={{ background: '#ff69b4', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '0.8rem', verticalAlign: 'middle' }}>{messages.length}</span></h3>
-              <button onClick={handleManualRefresh} className="btn-icon" title="Refresh inbox">
+              <button onClick={handleManualRefresh} className="btn-icon" style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Refresh inbox">
                 <RefreshCw size={18} className={refreshing ? 'spin' : ''} />
               </button>
+              <button onClick={handleLogout} className="btn-icon" style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(229, 9, 20, 0.4)', color: '#e50914', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Delete address">
+                <Trash2 size={18} />
+              </button>
             </div>
+          </div>
 
-            <div style={{ maxHeight: '500px', overflowY: 'auto', background: 'rgba(255,255,255,0.3)' }}>
-              {messages.length === 0 ? (
-                <div style={{ padding: '5rem 2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-                  <div style={{ background: 'rgba(255,255,255,0.5)', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
-                    <Mail size={40} style={{ opacity: 0.4, color: '#ff69b4' }} />
-                  </div>
-                  <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>No messages yet</p>
-                  <p className="text-sm" style={{ opacity: 0.7 }}>Emails sent to this address will appear here automatically.</p>
-                </div>
-              ) : (
-                <div className="flex-col" style={{ gap: '0.8rem', padding: '1rem' }}>
-                  {messages.map(msg => {
-                    // Extract name from "Name <email>" format if present
-                    const senderName = msg.from.split('<')[0].replace(/"/g, '').trim();
-                    const initial = senderName.charAt(0).toUpperCase();
+          {timeRemaining && (
+            <div style={{ color: timeRemaining === 'Expired' ? '#e50914' : '#b3b3b3', fontSize: '0.85rem', marginBottom: '1.5rem', textAlign: 'right' }}>
+              Expires in {timeRemaining}
+            </div>
+          )}
 
-                    return (
-                      <div
-                        key={msg.id}
-                        onClick={() => selectMessage(msg.id)}
-                        className="message-item"
-                        style={{
-                          margin: '0',
-                          padding: '1rem',
-                          background: 'rgba(255,255,255,0.6)',
-                          boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '1rem',
-                          border: '1px solid rgba(255,255,255,0.5)'
-                        }}
-                      >
-                        {/* Avatar */}
-                        <div className="avatar">
-                          {initial}
+          {/* Inbox List resembling a Netflix Row / Stack */}
+          <div style={{ background: '#181818', borderRadius: '4px', overflow: 'hidden', border: '1px solid #333' }}>
+            {messages.length === 0 ? (
+              <div style={{ padding: '4rem 2rem', textAlign: 'center', color: '#b3b3b3' }}>
+                <Mail size={48} style={{ opacity: 0.3, marginBottom: '1rem', color: '#fff' }} />
+                <p style={{ fontSize: '1.2rem', fontWeight: 500, color: '#fff' }}>No messages yet</p>
+                <p style={{ fontSize: '0.95rem', marginTop: '0.5rem' }}>Auto-refreshing... Emails sent to this address will appear here.</p>
+              </div>
+            ) : (
+              <div className="flex-col" style={{ gap: '1px', background: '#333' }}>
+                {messages.map(msg => {
+                  const senderName = msg.from.split('<')[0].replace(/"/g, '').trim();
+                  const initial = senderName.charAt(0).toUpperCase();
+
+                  return (
+                    <div
+                      key={msg.id}
+                      onClick={() => selectMessage(msg.id)}
+                      className="message-item"
+                      style={{
+                        padding: '1.2rem 1.5rem',
+                        background: '#181818',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1.2rem',
+                        cursor: 'pointer',
+                        margin: 0,
+                        border: 'none',
+                        borderBottom: '1px solid #333',
+                        borderRadius: 0,
+                        transition: 'background 0.2s'
+                      }}
+                    >
+                      <div className="avatar" style={{ background: '#e50914', color: '#fff', width: '40px', height: '40px', borderRadius: '4px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.2rem' }}>
+                        {initial}
+                      </div>
+
+                      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                        <div className="flex-row justify-between" style={{ marginBottom: 0, flexWrap: 'nowrap' }}>
+                          <span className="truncate" style={{ fontWeight: 600, color: '#fff', fontSize: '1.05rem' }}>
+                            {senderName}
+                          </span>
+                          <span style={{ whiteSpace: 'nowrap', fontSize: '0.85rem', color: '#b3b3b3' }}>
+                            {new Date(msg.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
                         </div>
-
-                        {/* Content */}
-                        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                          <div className="flex-row justify-between" style={{ marginBottom: 0, flexWrap: 'nowrap' }}>
-                            <span className="truncate" style={{ fontWeight: 700, color: '#333', fontSize: '1rem' }}>
-                              {senderName}
-                            </span>
-                            <span className="text-sm text-muted" style={{ whiteSpace: 'nowrap', fontSize: '0.85rem' }}>
-                              {new Date(msg.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                          <div className="truncate" style={{ color: '#666', fontSize: '0.95rem' }}>
-                            {msg.subject || "(No Subject)"}
-                          </div>
+                        <div className="truncate" style={{ color: '#b3b3b3', fontSize: '0.95rem' }}>
+                          {msg.subject || "(No Subject)"}
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}

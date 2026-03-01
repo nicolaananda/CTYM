@@ -5,25 +5,20 @@
 }
 
 :root {
-  --color-primary: #ff5ac8;
-  --color-primary-hover: #ff1493;
-  --color-secondary: #8c52ff;
-  --color-text-main: #2d2d2d;
-  --color-text-muted: #666;
-  --glass-bg: rgba(255, 255, 255, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.8);
-  --glass-shadow: 0 15px 35px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05);
+  --color-primary: #e50914;
+  --color-primary-hover: #b20710;
+  --color-secondary: #333333;
+  --color-text-main: #ffffff;
+  --color-text-muted: #b3b3b3;
+  --glass-bg: rgba(0, 0, 0, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  /* Complex mesh gradient background */
-  background:
-    radial-gradient(circle at 10% 20%, rgba(255, 228, 240, 0.8) 0%, transparent 40%),
-    radial-gradient(circle at 90% 10%, rgba(230, 240, 255, 0.8) 0%, transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(255, 220, 240, 0.8) 0%, transparent 40%),
-    linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background: #141414;
   background-attachment: fixed;
   color: var(--color-text-main);
   min-height: 100vh;
@@ -93,45 +88,7 @@ body {
 }
 
 
-/* Floating background orbs for depth */
-body::before,
-body::after {
-  content: '';
-  position: fixed;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: -1;
-  filter: blur(80px);
-}
-
-body::before {
-  top: -100px;
-  left: -100px;
-  width: 500px;
-  height: 500px;
-  background: rgba(255, 182, 193, 0.4);
-  animation: floatOrb 20s infinite alternate;
-}
-
-body::after {
-  bottom: -100px;
-  right: -100px;
-  width: 400px;
-  height: 400px;
-  background: rgba(175, 200, 255, 0.4);
-  animation: floatOrb 25s infinite alternate-reverse;
-}
-
-@keyframes floatOrb {
-  0% {
-    transform: translate(0, 0);
-  }
-
-  100% {
-    transform: translate(50px, 50px);
-  }
-}
-
+/* Floating background removed for clean dark look */
 #root {
   width: 100%;
   height: 100%;
@@ -156,26 +113,26 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-weight: 700;
   margin: 0;
 }
 
-/* Premium Glass Card */
+/* Premium Glass Card -> Netflix Dark Box */
 .glass-card {
   background: var(--glass-bg);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
-  border-radius: 24px;
+  border-radius: 12px;
   padding: 2.5rem;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   overflow: hidden;
   position: relative;
 }
 
-/* Adding a subtle shine/sheen */
+/* Very subtle top sheen */
 .glass-card::before {
   content: '';
   position: absolute;
@@ -183,41 +140,38 @@ h4 {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
 }
 
 .input-field {
   width: 100%;
-  padding: 1rem 1.4rem;
-  border-radius: 16px;
-  border: 2px solid transparent;
-  background: rgba(255, 255, 255, 0.6);
+  padding: 1.25rem 1.4rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.5);
   font-size: 1rem;
   color: var(--color-text-main);
   transition: all 0.3s ease;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
   outline: none;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .input-field:focus {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(255, 90, 200, 0.3);
-  box-shadow: 0 0 0 4px rgba(255, 90, 200, 0.1);
+  background: rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 255, 255, 1);
 }
 
-/* Glossy Button */
+/* Netflix Button */
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-primary) 0%, #ff8cc9 100%);
+  background: var(--color-primary);
   color: white;
   border: none;
-  padding: 1rem 2rem;
-  border-radius: 16px;
+  padding: 1.25rem 2rem;
+  border-radius: 4px;
   font-weight: 600;
   font-size: 1.05rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 10px 20px rgba(255, 90, 200, 0.25);
+  transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -226,71 +180,51 @@ h4 {
   overflow: hidden;
 }
 
-.btn-primary::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(rgba(255, 255, 255, 0.2), transparent);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
 .btn-primary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 15px 30px rgba(255, 90, 200, 0.35);
-}
-
-.btn-primary:hover::after {
-  opacity: 1;
+  background: var(--color-primary-hover);
 }
 
 .btn-primary:active {
-  transform: translateY(-1px);
+  transform: scale(0.98);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.5);
-  color: #555;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 0.8rem 1.5rem;
-  border-radius: 14px;
+  border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.8);
-  color: var(--color-primary);
-  border-color: var(--color-primary);
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* List Items */
 .message-item {
   padding: 1.2rem 1.5rem;
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.05);
   margin-bottom: 8px;
-  border-radius: 16px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .message-item:hover {
-  background: rgba(255, 255, 255, 0.9);
-  transform: scale(1.01);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  border-color: rgba(255, 90, 200, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.02);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Text Gradients */
 .text-gradient {
-  background: linear-gradient(135deg, #ff5ac8 0%, #8c52ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--color-primary);
 }
 
 /* Animations included in previous step (fadeIn), reusing them */
@@ -311,29 +245,23 @@ h4 {
 /* Feature Badges */
 .feature-pill {
   display: inline-flex;
-  /* Ensure they don't stretch */
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   padding: 0.6rem 1.2rem;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #555;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  color: #fff;
   transition: all 0.3s ease;
   white-space: nowrap;
-  /* Prevent text wrapping inside pill */
 }
 
 .feature-pill:hover {
-  transform: translateY(-3px);
-  background: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 8px 20px rgba(255, 105, 180, 0.15);
-  color: var(--color-primary);
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
 /* Custom Select Wrapper */
@@ -369,12 +297,12 @@ h4 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* Button Sizes */
@@ -467,8 +395,8 @@ h4 {
 .avatar {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+  border-radius: 4px;
+  background: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -492,13 +420,13 @@ h4 {
 }
 
 .toast {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(20, 20, 20, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   padding: 1rem 1.5rem;
-  border-radius: 50px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
-  color: #333;
+  border-radius: 4px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  color: #fff;
   font-weight: 600;
   display: flex;
   align-items: center;
